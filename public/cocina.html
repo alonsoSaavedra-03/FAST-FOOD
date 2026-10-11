@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastOrder S.A. | Kitchen Display System (KDS)</title>
+    <link rel="stylesheet" href="/css/kds.css">
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+</head>
+<body>
+
+    <!-- KDS TOP STATUS HEADER -->
+    <header class="kds-header">
+        <div class="kds-brand">
+            <span style="font-size:1.8rem;">🍳</span>
+            <div>
+                <h1>KDS COCINA EN TIEMPO REAL</h1>
+                <span class="kds-badge">ESTACIÓN PRINCIPAL • FASTORDER S.A.</span>
+            </div>
+        </div>
+
+        <div class="kds-metrics">
+            <div class="metric-pill">
+                <span>Comandas Activas:</span>
+                <span class="metric-num" id="activeTicketsCount">0</span>
+            </div>
+
+            <div class="metric-pill">
+                <span>Reloj:</span>
+                <span id="kdsClock" style="color:#FDE047; font-family:monospace; font-size:1.05rem;">00:00:00</span>
+            </div>
+
+            <div class="ws-indicator ws-online" id="kdsWsBadge">
+                <span id="kdsWsDot">●</span>
+                <span id="kdsWsText">WSS Online</span>
+            </div>
+        </div>
+
+        <div class="kds-controls">
+            <button class="btn-ctrl" id="btnToggleSound" title="Activar/Desactivar alertas sonoras">
+                <span id="soundIcon">🔊</span> Sonido Activado
+            </button>
+            <a href="/portal.html" class="btn-ctrl" style="text-decoration:none;" title="Volver al Portal">🏛️ Portal</a>
+        </div>
+    </header>
+
+    <!-- MAIN TICKETS BOARD -->
+    <main class="kds-main">
+        <div class="kds-grid" id="kdsTicketsGrid">
+            <!-- Empty state por defecto mientras no hay pedidos -->
+            <div class="kds-empty" id="kdsEmptyState">
+                <div class="kds-empty-icon">🍔</div>
+                <h2>Cocina al día y sin órdenes pendientes</h2>
+                <p>Las nuevas comandas realizadas desde la PWA del cliente o sincronizadas offline aparecerán aquí al instante en tiempo real.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="/js/kds.js"></script>
+</body>
+</html>

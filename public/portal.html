@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastOrder S.A. | Portal del Ecosistema PWA & KDS</title>
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <style>
+        :root {
+            --primary: #1E3A8A;
+            --accent: #F59E0B;
+            --bg: #0F172A;
+            --card-bg: #1E293B;
+            --border: #334155;
+            --text: #F8FAFC;
+            --text-dim: #94A3B8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 40px 20px; min-height: 100vh; }
+        .container { max-width: 960px; margin: 0 auto; }
+        
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 2.2rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; }
+        .header p { color: var(--text-dim); font-size: 1.05rem; margin-top: 8px; }
+        .tag { background: rgba(245, 158, 11, 0.2); color: #FCD34D; font-weight: 800; font-size: 0.8rem; padding: 4px 14px; border-radius: 20px; display: inline-block; margin-top: 10px; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 40px; }
+        .card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .card-icon { font-size: 3rem; margin-bottom: 14px; }
+        .card h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 8px; color: #FFFFFF; }
+        .card p { font-size: 0.9rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 20px; flex: 1; }
+        
+        .btn-launch { display: block; text-align: center; background: var(--accent); color: #0F172A; text-decoration: none; font-weight: 800; font-size: 0.95rem; padding: 13px 20px; border-radius: 12px; transition: background 0.2s; }
+        .btn-launch:hover { background: #D97706; }
+        .btn-launch.client { background: #3B82F6; color: white; }
+        .btn-launch.client:hover { background: #2563EB; }
+        .btn-launch.kitchen { background: #10B981; color: white; }
+        .btn-launch.kitchen:hover { background: #059669; }
+
+        .guide-box { background: #1E293B; border: 1px solid var(--border); border-radius: 16px; padding: 26px; }
+        .guide-box h3 { font-size: 1.2rem; font-weight: 800; color: #38BDF8; margin-bottom: 14px; }
+        .step { margin-bottom: 12px; font-size: 0.92rem; color: #CBD5E1; line-height: 1.5; }
+        .step strong { color: #FFFFFF; }
+        .code-pill { background: #0F172A; padding: 2px 8px; border-radius: 6px; font-family: monospace; color: #FDE047; font-size: 0.85rem; border: 1px solid #334155; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span style="font-size:3.5rem;">🍔</span>
+            <h1>FASTORDER S.A.</h1>
+            <p>Ecosistema de Software PWA Offline-First, KDS en Tiempo Real y API REST</p>
+            <span class="tag">PROYECTO TÉCNICO SENATI • INGENIERÍA DE SOFTWARE</span>
+        </div>
+
+        <div class="grid">
+            <!-- VISTA CLIENTE -->
+            <div class="card">
+                <div class="card-icon">📱</div>
+                <h2>Cliente Móvil (PWA)</h2>
+                <p>Aplicación progresiva Mobile-First optimizada para comensales. Incluye menú categorizado, personalización de platillos, carrito persistente en IndexedDB, botón Thumb-Zone y checkout en modo 100% offline.</p>
+                <a href="/" class="btn-launch client" target="_blank">Abrir App Cliente PWA ➔</a>
+            </div>
+
+            <!-- VISTA COCINA KDS -->
+            <div class="card">
+                <div class="card-icon">🍳</div>
+                <h2>Pantalla KDS Cocina</h2>
+                <p>Monitor de cocina en tiempo real conectado vía WebSockets bidireccionales. Despliega comandas al instante con timers de alerta por color (verde, amarillo, rojo), sonido de campana y cambio de estados.</p>
+                <a href="/cocina.html" class="btn-launch kitchen" target="_blank">Abrir Monitor KDS Cocina ➔</a>
+            </div>
+
+            <!-- VISTA DUAL SPLIT -->
+            <div class="card">
+                <div class="card-icon">⚡</div>
+                <h2>Simulación y Pruebas</h2>
+                <p>Permite probar simultáneamente ambas vistas: realiza una orden en el cliente (online u offline) y observa cómo impacta de inmediato en la cocina mediante eventos WebSocket y Background Sync.</p>
+                <a href="#guia" class="btn-launch">Ver Guía de Pruebas ➔</a>
+            </div>
+        </div>
+
+        <!-- GUIA DE PRUEBAS -->
+        <div class="guide-box" id="guia">
+            <h3>🧪 Guía Rápida para Demostración y Evaluación</h3>
+            <div class="step">
+                <strong>Paso 1: Abrir ambas ventanas en paralelo:</strong> Abre la <a href="/" target="_blank" style="color:#38BDF8;">Vista Cliente</a> en una mitad de tu pantalla y el <a href="/cocina.html" target="_blank" style="color:#34D399;">Monitor KDS</a> en la otra mitad.
+            </div>
+            <div class="step">
+                <strong>Paso 2: Prueba de Pedido en Tiempo Real:</strong> Agrega platillos al carrito en la PWA y presiona <span class="code-pill">Confirmar Pedido</span>. Verás cómo aparece inmediatamente en el monitor KDS con alerta sonora y cronómetro en vivo.
+            </div>
+            <div class="step">
+                <strong>Paso 3: Prueba de Resiliencia Offline (Sin Internet):</strong> La PWA cuenta con un indicador de conexión interactivo que notifica tanto cuando estás <em>En línea</em> como cuando estás <em>Sin conexión</em>. Pulsa <span class="code-pill">Simular Offline</span> (o activa Modo Avión). Verás cómo el aviso cambia de color y mensaje inmediatamente. Agrega productos y presiona <span class="code-pill">Guardar Pedido (Sin conexión)</span>; la orden se registrará en IndexedDB localmente sin trabas.
+            </div>
+            <div class="step">
+                <strong>Paso 4: Prueba de Sincronización Automática (Background Sync):</strong> Vuelve a pulsar el botón para restaurar la conexión a <span class="code-pill">Online</span>. El Service Worker despachará automáticamente la comanda encolada hacia el servidor y la orden aparecerá en la cocina con el distintivo <span class="code-pill">⚡ OFFLINE SYNC</span>.
+            </div>
+            <div class="step">
+                <strong>Paso 5: Avance de Estados en Cocina:</strong> En la cocina KDS, presiona <span class="code-pill">🔥 Iniciar Cocción</span> y luego <span class="code-pill">✓ Marcar Listo</span>. Notarás que el cliente recibe notificaciones en vivo y su barra de seguimiento se actualiza sola.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

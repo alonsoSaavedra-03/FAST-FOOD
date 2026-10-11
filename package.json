@@ -1,0 +1,17 @@
+{
+  "name": "fastorder-pwa",
+  "version": "1.0.0",
+  "description": "FastOrder S.A. - Progressive Web App (PWA) Offline-First con KDS en Tiempo Real",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["pwa", "kds", "offline-first", "websockets", "senati"],
+  "author": "Alonso Stevens Saavedra Donayre",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  }
+}

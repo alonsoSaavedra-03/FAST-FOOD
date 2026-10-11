@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#EF4444"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+  <!-- Burger Bun Top -->
+  <path d="M136 210 C136 140, 376 140, 376 210 Z" fill="#F59E0B"/>
+  <ellipse cx="210" cy="175" rx="8" ry="4" fill="#FEF3C7"/>
+  <ellipse cx="270" cy="165" rx="8" ry="4" fill="#FEF3C7"/>
+  <ellipse cx="320" cy="180" rx="8" ry="4" fill="#FEF3C7"/>
+  <!-- Lettuce -->
+  <path d="M120 220 Q150 205 180 220 T240 220 T300 220 T360 220 T392 220 L392 235 Q360 245 330 235 T270 235 T210 235 T150 235 T120 235 Z" fill="#10B981"/>
+  <!-- Cheese -->
+  <path d="M128 240 L384 240 L360 270 L280 250 L200 280 L140 250 Z" fill="#FBBF24"/>
+  <!-- Patty -->
+  <rect x="126" y="260" width="260" height="42" rx="16" fill="#78350F"/>
+  <!-- Bun Bottom -->
+  <path d="M140 315 L372 315 C372 355, 140 355, 140 315 Z" fill="#D97706"/>
+  <!-- Fast Speed lines -->
+  <path d="M60 230 L100 230" stroke="#F59E0B" stroke-width="12" stroke-linecap="round"/>
+  <path d="M40 265 L90 265" stroke="#F59E0B" stroke-width="12" stroke-linecap="round"/>
+  <path d="M70 300 L105 300" stroke="#F59E0B" stroke-width="12" stroke-linecap="round"/>
+  <text x="256" y="440" font-family="'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="52" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">FASTORDER</text>
+  <text x="256" y="475" font-family="'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="22" fill="#F59E0B" text-anchor="middle" letter-spacing="4">PWA &amp; KDS</text>
+</svg>
