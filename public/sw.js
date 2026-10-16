@@ -1,8 +1,8 @@
 // FastOrder S.A. - Service Worker
 // Version: 1.0.0 (Offline-First Architecture)
 
-const CACHE_STATIC_NAME = 'fastorder-appshell-v19';
-const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v19';
+const CACHE_STATIC_NAME = 'fastorder-appshell-v20';
+const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v20';
 
 const STATIC_ASSETS = [
     '/',
@@ -66,6 +66,11 @@ self.addEventListener('activate', (event) => {
 // 3. FETCH
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
+
+    // Ignorar peticiones de otros orígenes (ej. servicios en la nube como ntfy.sh)
+    if (url.origin !== location.origin) {
+        return;
+    }
 
     // API: Catálogo de productos (Stale-While-Revalidate)
     if (url.pathname === '/api/v1/productos') {

@@ -75,10 +75,42 @@ document.getElementById('btnToggleSound').addEventListener('click', () => {
 // ==========================================
 // 3. PERSISTENCIA LOCAL & CARGA DE COMANDAS (OFFLINE-FIRST & SERVERLESS)
 // ==========================================
+const CLOUD_CHANNEL = 'fastorder-senati-live-2026';
+let kdsCloudEventSource = null;
 let kdsPollingInterval = null;
 let kdsWsAttempts = 0;
 let lastRenderedHash = '';
 let isRehydratingServer = false;
+
+function initKdsCloudRealtime() {
+    if (kdsCloudEventSource || !('EventSource' in window)) return;
+    try {
+        kdsCloudEventSource = new EventSource(`https://ntfy.sh/${CLOUD_CHANNEL}/sse`);
+        kdsCloudEventSource.onmessage = (event) => {
+            try {
+                const ntfyMsg = JSON.parse(event.data);
+                if (ntfyMsg.event === 'message' && ntfyMsg.message) {
+                    let data = ntfyMsg.message;
+                    if (typeof data === 'string') {
+                        data = JSON.parse(data);
+                    }
+                    console.log('[KDS Cloud] Evento en vivo recibido:', data.type);
+                    if (data.type === 'NUEVO_PEDIDO_COCINA') {
+                        handleNewOrderFromClient(data.payload);
+                    } else if (data.type === 'COCINA_ESTADO_ACTUALIZADO') {
+                        handleStateUpdate(data);
+                    } else if (data.type === 'COCINA_REINICIADA') {
+                        kdsOrders = [];
+                        saveKdsOrdersLocal();
+                        lastRenderedHash = '';
+                        renderKdsBoard();
+                        showKdsDynamicIsland('Tablero Limpio', 'Comandas reseteadas', 'info');
+                    }
+                }
+            } catch (e) {}
+        };
+    } catch (e) {}
+}
 
 function saveKdsOrdersLocal() {
     try {
@@ -566,7 +598,22 @@ window.updateOrderStatus = async function(idPedido, nuevoEstado, ticketNum) {
     saveKdsOrdersLocal();
     lastRenderedHash = JSON.stringify(kdsOrders.map(o => ({ id: o.id_pedido, s: o.status, t: o.ticket_numero })));
 
-    // 2. Persistir en el servidor
+    // 2. Emitir evento cloud en tiempo real para que los celulares de los clientes avancen de paso al instante
+    try {
+        fetch(`https://ntfy.sh/${CLOUD_CHANNEL}/publish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'COCINA_ESTADO_ACTUALIZADO',
+                id_pedido: idPedido,
+                ticket_numero: ticketNum,
+                nuevo_estado: nuevoEstado,
+                tiempo_estimado: nuevoEstado === 'EN_PREPARACION' ? 8 : 0
+            })
+        }).catch(() => {});
+    } catch (e) {}
+
+    // 3. Persistir en el servidor
     try {
         const orderBackup = kdsOrders.find(o => o.id_pedido === idPedido || Number(o.ticket_numero) === Number(ticketNum));
         const res = await fetch(`/api/v1/pedidos/${idPedido}/estado`, {
@@ -934,6 +981,21 @@ window.processScannedQrCode = async function(qrData) {
         nuevo_estado: 'ENTREGADO_CLIENTE'
     });
 
+    // Emitir entrega vía cloud pub/sub para que el celular del cliente muestre de inmediato el paso 4 (Entregado)
+    try {
+        fetch(`https://ntfy.sh/${CLOUD_CHANNEL}/publish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'COCINA_ESTADO_ACTUALIZADO',
+                id_pedido: order ? order.id_pedido : null,
+                ticket_numero: resolvedTicket,
+                nuevo_estado: 'ENTREGADO_CLIENTE',
+                tiempo_estimado: 0
+            })
+        }).catch(() => {});
+    } catch (e) {}
+
     // Cerrar escáner tras 1.6 segundos
     setTimeout(() => {
         closeKdsScanner();
@@ -948,6 +1010,13 @@ window.clearAllKdsOrders = async function() {
         lastRenderedHash = '';
         renderKdsBoard();
         showKdsDynamicIsland('Tablero Limpio', 'Comandas reseteadas', 'info');
+        try {
+            fetch(`https://ntfy.sh/${CLOUD_CHANNEL}/publish`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'COCINA_REINICIADA' })
+            }).catch(() => {});
+        } catch (e) {}
     } catch (e) {
         console.warn('[KDS] Error al limpiar comandas:', e);
     }
@@ -958,11 +1027,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Cargar estado previo desde caché local para despliegue instantáneo
     loadKdsOrdersLocal();
 
-    // 2. Sincronizar con servidor y conectar WebSockets / Polling
+    // 2. Conectar canal cloud en tiempo real para comunicación inmediata con celulares en Vercel
+    initKdsCloudRealtime();
+
+    // 3. Sincronizar con servidor y conectar WebSockets / Polling
     loadKdsOrders();
     initKdsWebSocket();
 
-    // 3. Auto-verificación inmediata si se abrió mediante escaneo de cámara de celular (URL con parámetros)
+    // 4. Auto-verificación inmediata si se abrió mediante escaneo de cámara de celular (URL con parámetros)
     const urlParams = new URLSearchParams(window.location.search);
     const verifyTicket = urlParams.get('verify_ticket') || urlParams.get('verify');
     const verifyPin = urlParams.get('pin');

@@ -1357,6 +1357,16 @@ document.getElementById('btnConfirmCheckout').addEventListener('click', async ()
 
             if (res.ok) {
                 const confirmedOrder = await res.json();
+                try {
+                    fetch(`https://ntfy.sh/fastorder-senati-live-2026/publish`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'NUEVO_PEDIDO_COCINA',
+                            payload: confirmedOrder
+                        })
+                    }).catch(() => {});
+                } catch (e) {}
                 handleOrderSuccess(confirmedOrder, false);
                 return;
             }
@@ -1457,6 +1467,27 @@ function startOrderTracking(order, isOffline) {
             badge.style.color = '#B45309';
         }
         updateStepNodes(1);
+    } else if (order.status === 'EN_PREPARACION') {
+        if (badge) {
+            badge.textContent = 'En Plancha / Cocción';
+            badge.style.background = '#FEF3C7';
+            badge.style.color = '#B45309';
+        }
+        updateStepNodes(2);
+    } else if (order.status === 'LISTO_PARA_ENTREGA') {
+        if (badge) {
+            badge.textContent = 'Listo para Recoger';
+            badge.style.background = '#D1FAE5';
+            badge.style.color = '#065F46';
+        }
+        updateStepNodes(3);
+    } else if (order.status === 'ENTREGADO_CLIENTE') {
+        if (badge) {
+            badge.textContent = 'Pedido Entregado';
+            badge.style.background = '#F1F5F9';
+            badge.style.color = '#475569';
+        }
+        updateStepNodes(4);
     } else {
         if (badge) {
             badge.textContent = 'Recibido en Cocina';
@@ -1466,8 +1497,12 @@ function startOrderTracking(order, isOffline) {
         updateStepNodes(1);
     }
 
+    // Asegurar que los escuchadores en tiempo real (Cloud Pub/Sub y Polling) estén activos
+    initCloudRealtime();
+    activateAppHttpPolling();
+
     const etaText = document.getElementById('trackEtaText');
-    if (etaText) etaText.textContent = 'Tiempo estimado de preparación: 10 - 12 min';
+    if (etaText) etaText.textContent = order.status === 'EN_PREPARACION' ? 'Tiempo restante: ~8 min' : 'Tiempo estimado de preparación: 10 - 12 min';
 
     // Renderizar Código QR de Validación para Entrega (Estilo Apple Wallet)
     const qrCard = document.getElementById('orderQrValidationCard');
@@ -1559,12 +1594,46 @@ function updateStepNodes(currentStep) {
 }
 
 // ==========================================
-// 12. WEBSOCKETS CLIENT (TIEMPO REAL)
+// 12. WEBSOCKETS & CLOUD REALTIME CLIENT
 // ==========================================
+const CLOUD_CHANNEL = 'fastorder-senati-live-2026';
+let cloudEventSource = null;
 let appPollingInterval = null;
 let appWsAttempts = 0;
 
+function initCloudRealtime() {
+    if (cloudEventSource || !('EventSource' in window)) return;
+
+    try {
+        cloudEventSource = new EventSource(`https://ntfy.sh/${CLOUD_CHANNEL}/sse`);
+
+        cloudEventSource.onmessage = (event) => {
+            try {
+                const ntfyMsg = JSON.parse(event.data);
+                if (ntfyMsg.event === 'message' && ntfyMsg.message) {
+                    let data = ntfyMsg.message;
+                    if (typeof data === 'string') {
+                        data = JSON.parse(data);
+                    }
+                    console.log('[App Cloud] Evento recibido en tiempo real:', data.type);
+                    if (data.type === 'COCINA_ESTADO_ACTUALIZADO') {
+                        handleOrderStateChange(data);
+                    }
+                }
+            } catch (e) {}
+        };
+
+        cloudEventSource.onerror = () => {
+            activateAppHttpPolling();
+        };
+    } catch (e) {
+        activateAppHttpPolling();
+    }
+}
+
 function initWebSocket() {
+    initCloudRealtime();
+
     if (wsClient && (wsClient.readyState === WebSocket.OPEN || wsClient.readyState === WebSocket.CONNECTING)) {
         return;
     }
@@ -1619,15 +1688,11 @@ function activateAppHttpPolling() {
                 const orders = await res.json();
                 if (Array.isArray(orders)) {
                     const matched = orders.find(o => 
-                        o.id_pedido === activeOrderTracked.id_pedido || 
+                        (activeOrderTracked.id_pedido && o.id_pedido === activeOrderTracked.id_pedido) || 
                         (activeOrderTracked.uuid_local && o.uuid_local === activeOrderTracked.uuid_local) ||
                         (activeOrderTracked.ticket_numero && Number(o.ticket_numero) === Number(activeOrderTracked.ticket_numero))
                     );
                     if (matched && matched.status !== activeOrderTracked.status) {
-                        activeOrderTracked.status = matched.status;
-                        try {
-                            localStorage.setItem('fastorder_active_order', JSON.stringify(activeOrderTracked));
-                        } catch (e) {}
                         handleOrderStateChange({
                             id_pedido: matched.id_pedido,
                             ticket_numero: matched.ticket_numero,
@@ -1643,7 +1708,10 @@ function activateAppHttpPolling() {
 
 function handleOrderStateChange(eventData) {
     if (!activeOrderTracked) return;
-    if (activeOrderTracked.id_pedido === eventData.id_pedido || Number(activeOrderTracked.ticket_numero) === Number(eventData.ticket_numero)) {
+    const isSameId = activeOrderTracked.id_pedido && eventData.id_pedido && activeOrderTracked.id_pedido === eventData.id_pedido;
+    const isSameTicket = activeOrderTracked.ticket_numero && eventData.ticket_numero && Number(activeOrderTracked.ticket_numero) === Number(eventData.ticket_numero);
+
+    if (isSameId || isSameTicket) {
         activeOrderTracked.status = eventData.nuevo_estado;
         try {
             localStorage.setItem('fastorder_active_order', JSON.stringify(activeOrderTracked));
@@ -2091,7 +2159,9 @@ function getFallbackProducts() {
 document.addEventListener('DOMContentLoaded', () => {
     updateNetworkStatusUI();
     loadCatalog();
+    initCloudRealtime();
     initWebSocket();
+    activateAppHttpPolling();
     updateCustomerGreetingUI();
 
     // Restaurar seguimiento de comanda activa si existe en almacenamiento local

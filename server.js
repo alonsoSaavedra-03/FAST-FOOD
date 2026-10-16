@@ -421,15 +421,31 @@ function saveStateToDisk() {
 loadStateFromDisk();
 
 // ==========================================
-// 2. WEBSOCKETS BROADCAST MANAGER
+// 2. WEBSOCKETS & CLOUD REALTIME BROADCAST MANAGER
 // ==========================================
+const CLOUD_CHANNEL = 'fastorder-senati-live-2026';
+
 function broadcastWebSocket(messageObject) {
     const jsonStr = JSON.stringify(messageObject);
+
+    // 1. Enviar a clientes WebSocket locales (para desarrollo local)
     wss.clients.forEach(client => {
         if (client.readyState === 1) { // 1 = OPEN
             client.send(jsonStr);
         }
     });
+
+    // 2. Enviar a canal cloud pub-sub (para sincronización multi-dispositivo en Vercel Serverless)
+    try {
+        const https = require('https');
+        const req = https.request(`https://ntfy.sh/${CLOUD_CHANNEL}/publish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        req.on('error', () => {});
+        req.write(jsonStr);
+        req.end();
+    } catch (e) {}
 }
 
 wss.on('connection', (ws) => {
