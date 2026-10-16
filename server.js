@@ -480,9 +480,63 @@ app.get('/api/v1/productos', (req, res) => {
     res.json(CATALOG_DB);
 });
 
+async function syncFromCloudIfEmpty() {
+    if (ORDERS_DB.length > 0) return;
+    try {
+        const https = require('https');
+        await new Promise((resolve) => {
+            const req = https.get(`https://ntfy.sh/${CLOUD_CHANNEL}/json?poll=1&since=1h`, { timeout: 3000 }, (res) => {
+                let raw = '';
+                res.on('data', chunk => raw += chunk);
+                res.on('end', () => {
+                    try {
+                        const lines = raw.trim().split('\n');
+                        const ordersMap = new Map();
+                        lines.forEach(line => {
+                            try {
+                                const item = JSON.parse(line);
+                                if (item.event === 'message' && item.message) {
+                                    let msg = item.message;
+                                    if (typeof msg === 'string') msg = JSON.parse(msg);
+                                    if (msg.type === 'NUEVO_PEDIDO_COCINA' && msg.payload) {
+                                        ordersMap.set(msg.payload.id_pedido, msg.payload);
+                                    } else if (msg.type === 'COCINA_ESTADO_ACTUALIZADO') {
+                                        const ord = ordersMap.get(msg.id_pedido) || Array.from(ordersMap.values()).find(o => Number(o.ticket_numero) === Number(msg.ticket_numero));
+                                        if (ord) {
+                                            if (msg.nuevo_estado === 'ENTREGADO_CLIENTE') {
+                                                ordersMap.delete(ord.id_pedido);
+                                            } else {
+                                                ord.status = msg.nuevo_estado;
+                                            }
+                                        }
+                                    } else if (msg.type === 'COCINA_REINICIADA') {
+                                        ordersMap.clear();
+                                    }
+                                }
+                            } catch (e) {}
+                        });
+                        ORDERS_DB = Array.from(ordersMap.values());
+                        if (ORDERS_DB.length > 0) {
+                            const maxTicket = Math.max(...ORDERS_DB.map(o => Number(o.ticket_numero) || 0));
+                            if (maxTicket >= ticketCounter) {
+                                ticketCounter = maxTicket + 1;
+                            }
+                            saveStateToDisk();
+                        }
+                    } catch (e) {}
+                    resolve();
+                });
+            });
+            req.on('error', () => resolve());
+            req.on('timeout', () => { req.destroy(); resolve(); });
+        });
+    } catch (e) {}
+}
+
 // GET: Lista de pedidos activos (para KDS)
-app.get('/api/v1/pedidos', (req, res) => {
+app.get('/api/v1/pedidos', async (req, res) => {
     loadStateFromDisk();
+    await syncFromCloudIfEmpty();
     const now = Date.now();
     ORDERS_DB = ORDERS_DB.filter(o => {
         if (o.status === 'ENTREGADO_CLIENTE') return false;

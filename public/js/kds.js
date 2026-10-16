@@ -85,7 +85,7 @@ let isRehydratingServer = false;
 function initKdsCloudRealtime() {
     if (kdsCloudEventSource || !('EventSource' in window)) return;
     try {
-        kdsCloudEventSource = new EventSource(`https://ntfy.sh/${CLOUD_CHANNEL}/sse`);
+        kdsCloudEventSource = new EventSource(`https://ntfy.sh/${CLOUD_CHANNEL}/sse?since=1h`);
         kdsCloudEventSource.onmessage = (event) => {
             try {
                 const ntfyMsg = JSON.parse(event.data);
@@ -142,57 +142,80 @@ function loadKdsOrdersLocal() {
 }
 
 async function loadKdsOrders() {
+    let cloudOrders = [];
+    try {
+        const cloudRes = await fetch(`https://ntfy.sh/${CLOUD_CHANNEL}/json?poll=1&since=1h`, { cache: 'no-store' });
+        if (cloudRes.ok) {
+            const raw = await cloudRes.text();
+            const lines = raw.trim().split('\n');
+            const ordersMap = new Map();
+            lines.forEach(l => {
+                try {
+                    const item = JSON.parse(l);
+                    if (item.event === 'message' && item.message) {
+                        let msg = item.message;
+                        if (typeof msg === 'string') msg = JSON.parse(msg);
+                        if (msg.type === 'NUEVO_PEDIDO_COCINA' && msg.payload) {
+                            ordersMap.set(msg.payload.id_pedido, msg.payload);
+                        } else if (msg.type === 'COCINA_ESTADO_ACTUALIZADO') {
+                            const ord = ordersMap.get(msg.id_pedido) || Array.from(ordersMap.values()).find(o => Number(o.ticket_numero) === Number(msg.ticket_numero));
+                            if (ord) {
+                                if (msg.nuevo_estado === 'ENTREGADO_CLIENTE') {
+                                    ordersMap.delete(ord.id_pedido);
+                                } else {
+                                    ord.status = msg.nuevo_estado;
+                                }
+                            }
+                        } else if (msg.type === 'COCINA_REINICIADA') {
+                            ordersMap.clear();
+                        }
+                    }
+                } catch (e) {}
+            });
+            cloudOrders = Array.from(ordersMap.values());
+        }
+    } catch (e) {}
+
+    let serverOrders = [];
     try {
         const res = await fetch('/api/v1/pedidos?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
             const list = await res.json();
             if (Array.isArray(list)) {
-                const now = Date.now();
-                const serverOrders = list.filter(o => {
-                    if (o.status === 'ENTREGADO_CLIENTE') return false;
-                    if (o.creado_en) {
-                        const ageMins = (now - new Date(o.creado_en).getTime()) / 60000;
-                        if (ageMins > 60) return false;
-                    }
-                    return true;
-                });
-
-                // Si el servidor serverless se reinició en frío (0 órdenes en memoria)
-                // pero KDS tiene órdenes locales activas, rehidratar el servidor automáticamente
-                if (serverOrders.length === 0 && kdsOrders.length > 0 && !isRehydratingServer) {
-                    isRehydratingServer = true;
-                    fetch('/api/v1/pedidos/rehidratar', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ orders: kdsOrders })
-                    }).catch(() => {}).finally(() => { isRehydratingServer = false; });
-                } else if (serverOrders.length > 0) {
-                    // Mezclar manteniendo cualquier comanda local válida
-                    const merged = [...serverOrders];
-                    kdsOrders.forEach(localOrd => {
-                        const exists = merged.some(s => 
-                            s.id_pedido === localOrd.id_pedido || 
-                            (localOrd.uuid_local && s.uuid_local === localOrd.uuid_local) ||
-                            (localOrd.ticket_numero && Number(s.ticket_numero) === Number(localOrd.ticket_numero))
-                        );
-                        if (!exists && localOrd.status !== 'ENTREGADO_CLIENTE') {
-                            merged.push(localOrd);
-                        }
-                    });
-                    kdsOrders = merged;
-                }
-
-                // Generar hash de estado: SOLO re-renderizar si hubo un cambio real
-                const currentHash = JSON.stringify(kdsOrders.map(o => ({ id: o.id_pedido, s: o.status, t: o.ticket_numero })));
-                if (currentHash !== lastRenderedHash) {
-                    lastRenderedHash = currentHash;
-                    saveKdsOrdersLocal();
-                    renderKdsBoard();
-                }
+                serverOrders = list;
             }
         }
-    } catch (err) {
-        console.warn('[KDS] Sondeo HTTP temporalmente no disponible:', err.message);
+    } catch (e) {}
+
+    // Combinar órdenes de la nube, del servidor y locales
+    const now = Date.now();
+    const allCandidates = [...cloudOrders, ...serverOrders, ...kdsOrders];
+    const uniqueMap = new Map();
+    allCandidates.forEach(ord => {
+        if (!ord || ord.status === 'ENTREGADO_CLIENTE') return;
+        if (ord.creado_en) {
+            const ageMins = (now - new Date(ord.creado_en).getTime()) / 60000;
+            if (ageMins > 60) return;
+        }
+        const key = ord.id_pedido || `TICK-${ord.ticket_numero}`;
+        const existing = uniqueMap.get(key);
+        if (!existing) {
+            uniqueMap.set(key, ord);
+        } else {
+            const stateRank = { 'RECIBIDO_EN_SERVIDOR': 1, 'PENDIENTE_SYNC': 1, 'EN_PREPARACION': 2, 'LISTO_PARA_ENTREGA': 3, 'ENTREGADO_CLIENTE': 4 };
+            if ((stateRank[ord.status] || 0) > (stateRank[existing.status] || 0)) {
+                uniqueMap.set(key, ord);
+            }
+        }
+    });
+
+    kdsOrders = Array.from(uniqueMap.values());
+
+    const currentHash = JSON.stringify(kdsOrders.map(o => ({ id: o.id_pedido, s: o.status, t: o.ticket_numero })));
+    if (currentHash !== lastRenderedHash) {
+        lastRenderedHash = currentHash;
+        saveKdsOrdersLocal();
+        renderKdsBoard();
     }
 }
 

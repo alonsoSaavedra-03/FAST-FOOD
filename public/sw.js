@@ -1,8 +1,8 @@
 // FastOrder S.A. - Service Worker
 // Version: 1.0.0 (Offline-First Architecture)
 
-const CACHE_STATIC_NAME = 'fastorder-appshell-v25';
-const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v25';
+const CACHE_STATIC_NAME = 'fastorder-appshell-v26';
+const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v26';
 
 const STATIC_ASSETS = [
     '/',

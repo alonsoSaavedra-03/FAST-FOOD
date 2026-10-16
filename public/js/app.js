@@ -1612,7 +1612,7 @@ function initCloudRealtime() {
     if (cloudEventSource || !('EventSource' in window)) return;
 
     try {
-        cloudEventSource = new EventSource(`https://ntfy.sh/${CLOUD_CHANNEL}/sse`);
+        cloudEventSource = new EventSource(`https://ntfy.sh/${CLOUD_CHANNEL}/sse?since=1h`);
 
         cloudEventSource.onmessage = (event) => {
             try {
