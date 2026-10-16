@@ -438,13 +438,21 @@ function broadcastWebSocket(messageObject) {
     // 2. Enviar a canal cloud pub-sub (para sincronización multi-dispositivo en Vercel Serverless)
     try {
         const https = require('https');
-        const req = https.request(`https://ntfy.sh/${CLOUD_CHANNEL}/publish`, {
+        const req1 = https.request(`https://ntfy.sh/${CLOUD_CHANNEL}/publish`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
-        req.on('error', () => {});
-        req.write(jsonStr);
-        req.end();
+        req1.on('error', () => {});
+        req1.write(jsonStr);
+        req1.end();
+
+        const req2 = https.request(`https://ntfy.sh/${CLOUD_CHANNEL}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        req2.on('error', () => {});
+        req2.write(jsonStr);
+        req2.end();
     } catch (e) {}
 }
 
@@ -475,6 +483,16 @@ app.get('/api/v1/productos', (req, res) => {
 // GET: Lista de pedidos activos (para KDS)
 app.get('/api/v1/pedidos', (req, res) => {
     loadStateFromDisk();
+    const now = Date.now();
+    ORDERS_DB = ORDERS_DB.filter(o => {
+        if (o.status === 'ENTREGADO_CLIENTE') return false;
+        if (o.creado_en) {
+            const ageMins = (now - new Date(o.creado_en).getTime()) / 60000;
+            if (ageMins > 60) return false;
+        }
+        return true;
+    });
+    saveStateToDisk();
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
@@ -487,7 +505,13 @@ app.post('/api/v1/pedidos/rehidratar', (req, res) => {
     const { orders } = req.body;
     if (Array.isArray(orders)) {
         let added = 0;
+        const now = Date.now();
         orders.forEach(order => {
+            if (order.status === 'ENTREGADO_CLIENTE') return;
+            if (order.creado_en) {
+                const ageMins = (now - new Date(order.creado_en).getTime()) / 60000;
+                if (ageMins > 60) return;
+            }
             const exists = ORDERS_DB.some(o => 
                 o.id_pedido === order.id_pedido || 
                 (order.uuid_local && o.uuid_local === order.uuid_local) ||

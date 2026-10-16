@@ -124,7 +124,17 @@ function loadKdsOrdersLocal() {
         if (raw) {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed) && parsed.length > 0) {
-                kdsOrders = parsed.filter(o => o.status !== 'ENTREGADO_CLIENTE');
+                const now = Date.now();
+                // Descartar órdenes ya entregadas o con más de 60 minutos de antigüedad (purga automática de comandas de prueba viejas como 104 y 105)
+                kdsOrders = parsed.filter(o => {
+                    if (o.status === 'ENTREGADO_CLIENTE') return false;
+                    if (o.creado_en) {
+                        const ageMins = (now - new Date(o.creado_en).getTime()) / 60000;
+                        if (ageMins > 60) return false;
+                    }
+                    return true;
+                });
+                saveKdsOrdersLocal();
                 renderKdsBoard();
             }
         }
@@ -137,18 +147,26 @@ async function loadKdsOrders() {
         if (res.ok) {
             const list = await res.json();
             if (Array.isArray(list)) {
+                const now = Date.now();
+                const serverOrders = list.filter(o => {
+                    if (o.status === 'ENTREGADO_CLIENTE') return false;
+                    if (o.creado_en) {
+                        const ageMins = (now - new Date(o.creado_en).getTime()) / 60000;
+                        if (ageMins > 60) return false;
+                    }
+                    return true;
+                });
+
                 // Si el servidor serverless se reinició en frío (0 órdenes en memoria)
                 // pero KDS tiene órdenes locales activas, rehidratar el servidor automáticamente
-                if (list.length === 0 && kdsOrders.length > 0 && !isRehydratingServer) {
+                if (serverOrders.length === 0 && kdsOrders.length > 0 && !isRehydratingServer) {
                     isRehydratingServer = true;
                     fetch('/api/v1/pedidos/rehidratar', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ orders: kdsOrders })
                     }).catch(() => {}).finally(() => { isRehydratingServer = false; });
-                } else if (list.length > 0) {
-                    const serverOrders = list.filter(o => o.status !== 'ENTREGADO_CLIENTE');
-                    
+                } else if (serverOrders.length > 0) {
                     // Mezclar manteniendo cualquier comanda local válida
                     const merged = [...serverOrders];
                     kdsOrders.forEach(localOrd => {
@@ -165,7 +183,6 @@ async function loadKdsOrders() {
                 }
 
                 // Generar hash de estado: SOLO re-renderizar si hubo un cambio real
-                // para evitar parpadeos y que se destruya el DOM mientras el usuario interactúa
                 const currentHash = JSON.stringify(kdsOrders.map(o => ({ id: o.id_pedido, s: o.status, t: o.ticket_numero })));
                 if (currentHash !== lastRenderedHash) {
                     lastRenderedHash = currentHash;
@@ -180,6 +197,13 @@ async function loadKdsOrders() {
 }
 
 function initKdsWebSocket() {
+    // En hosting serverless Vercel, WebSockets no están soportados nativamente por arquitectura Lambda (error 200).
+    // Se activa el canal Cloud Realtime (SSE) + sondeo inteligente sin registrar errores en consola.
+    if (window.location.hostname.endsWith('vercel.app')) {
+        activateKdsHttpPolling();
+        return;
+    }
+
     if (wsConnection && (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING)) {
         return;
     }
@@ -306,7 +330,10 @@ function handleNewOrderFromClient(order) {
 }
 
 function handleStateUpdate(updateData) {
-    const idx = kdsOrders.findIndex(o => o.id_pedido === updateData.id_pedido || o.ticket_numero === updateData.ticket_numero);
+    const idx = kdsOrders.findIndex(o => 
+        (o.id_pedido && updateData.id_pedido && o.id_pedido === updateData.id_pedido) || 
+        (o.ticket_numero && updateData.ticket_numero && Number(o.ticket_numero) === Number(updateData.ticket_numero))
+    );
     if (idx >= 0) {
         if (updateData.nuevo_estado === 'ENTREGADO_CLIENTE') {
             const ticketNum = kdsOrders[idx].ticket_numero || updateData.ticket_numero;
@@ -439,16 +466,22 @@ function renderKdsBoard() {
         } else if (order.status === 'LISTO_PARA_ENTREGA') {
             const safeClient = (order.cliente_nombre || 'Cliente').replace(/'/g, "\\'");
             const safeMesa = (order.mesa || 'Mesa 4').replace(/'/g, "\\'");
+            const pinCode = order.codigo_pin || String(((order.ticket_numero * 37 + 1000) % 9000 + 1000));
             actionButtonHtml = `
-                <button class="btn-kds-action btn-scan-qr-delivery" onclick="openKdsScanner('${order.id_pedido}', ${order.ticket_numero}, '${safeClient}', '${safeMesa}')">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
-                    <span>Escanear QR de Entrega</span>
-                </button>
+                <div style="display:flex; gap:8px; width:100%;">
+                    <button class="btn-kds-action btn-scan-qr-delivery" style="flex:1;" onclick="openKdsScanner('${order.id_pedido}', ${order.ticket_numero}, '${safeClient}', '${safeMesa}')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        <span>Escanear QR</span>
+                    </button>
+                    <button class="btn-kds-action" style="background:#10B981; color:#fff; border:none; border-radius:12px; padding:0 12px; font-weight:700; cursor:pointer;" onclick="processScannedQrCode('${pinCode}')" title="Completar entrega de inmediato">
+                        <span>Entregar</span>
+                    </button>
+                </div>
             `;
         }
 
@@ -600,16 +633,22 @@ window.updateOrderStatus = async function(idPedido, nuevoEstado, ticketNum) {
 
     // 2. Emitir evento cloud en tiempo real para que los celulares de los clientes avancen de paso al instante
     try {
+        const payloadJson = JSON.stringify({
+            type: 'COCINA_ESTADO_ACTUALIZADO',
+            id_pedido: idPedido,
+            ticket_numero: Number(ticketNum),
+            nuevo_estado: nuevoEstado,
+            tiempo_estimado: nuevoEstado === 'EN_PREPARACION' ? 8 : 0
+        });
         fetch(`https://ntfy.sh/${CLOUD_CHANNEL}/publish`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                type: 'COCINA_ESTADO_ACTUALIZADO',
-                id_pedido: idPedido,
-                ticket_numero: ticketNum,
-                nuevo_estado: nuevoEstado,
-                tiempo_estimado: nuevoEstado === 'EN_PREPARACION' ? 8 : 0
-            })
+            body: payloadJson
+        }).catch(() => {});
+        fetch(`https://ntfy.sh/${CLOUD_CHANNEL}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payloadJson
         }).catch(() => {});
     } catch (e) {}
 

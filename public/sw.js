@@ -1,8 +1,8 @@
 // FastOrder S.A. - Service Worker
 // Version: 1.0.0 (Offline-First Architecture)
 
-const CACHE_STATIC_NAME = 'fastorder-appshell-v20';
-const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v20';
+const CACHE_STATIC_NAME = 'fastorder-appshell-v25';
+const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v25';
 
 const STATIC_ASSETS = [
     '/',
@@ -37,7 +37,7 @@ const STATIC_ASSETS = [
 
 // 1. INSTALL
 self.addEventListener('install', (event) => {
-    console.log('[SW] Instalando Service Worker...');
+    console.log('[SW] Instalando Service Worker v25...');
     event.waitUntil(
         caches.open(CACHE_STATIC_NAME).then((cache) => {
             console.log('[SW] Precaché del App Shell completado.');
@@ -48,7 +48,7 @@ self.addEventListener('install', (event) => {
 
 // 2. ACTIVATE
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activando Service Worker...');
+    console.log('[SW] Activando Service Worker v25 y purgando cachés obsoletas...');
     event.waitUntil(
         caches.keys().then((keys) => {
             return Promise.all(
@@ -91,17 +91,41 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Ignorar peticiones de WebSockets o POST a la API (se manejan vía IndexedDB / Sync)
+    // Ignorar peticiones de WebSockets o peticiones que no sean GET
     if (event.request.method !== 'GET' || url.protocol.startsWith('ws')) {
         return;
     }
 
-    // NUNCA cachear endpoints dinámicos de pedidos con Cache-First (dejar pasar a la red directamente)
+    // NUNCA cachear endpoints dinámicos de pedidos (dejar pasar a la red directamente)
     if (url.pathname.startsWith('/api/')) {
         return;
     }
 
-    // App Shell y Estáticos: Cache First con Fallback a Network
+    // Para scripts y estilos (/js/, /css/) y páginas HTML: Network-First con Fallback a Caché
+    // Esto garantiza que el código actualizado se reciba inmediatamente sin quedar atrapado en caché vieja
+    if (url.pathname.startsWith('/js/') || url.pathname.startsWith('/css/') || event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const responseClone = networkResponse.clone();
+                    caches.open(CACHE_STATIC_NAME).then((cache) => {
+                        cache.put(event.request, responseClone);
+                    });
+                }
+                return networkResponse;
+            }).catch(() => {
+                return caches.match(event.request).then((cached) => {
+                    if (cached) return cached;
+                    if (event.request.mode === 'navigate') {
+                        return caches.match('/index.html');
+                    }
+                });
+            })
+        );
+        return;
+    }
+
+    // Para imágenes y recursos estáticos pesados: Cache-First con Fallback a Network
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) {
@@ -116,11 +140,6 @@ self.addEventListener('fetch', (event) => {
                     cache.put(event.request, responseToCache);
                 });
                 return networkResponse;
-            }).catch(() => {
-                // Si la navegación a una página falla sin conexión, retornar index.html
-                if (event.request.mode === 'navigate') {
-                    return caches.match('/index.html');
-                }
             });
         })
     );

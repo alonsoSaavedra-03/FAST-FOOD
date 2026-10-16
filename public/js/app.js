@@ -1504,6 +1504,13 @@ function startOrderTracking(order, isOffline) {
     const etaText = document.getElementById('trackEtaText');
     if (etaText) etaText.textContent = order.status === 'EN_PREPARACION' ? 'Tiempo restante: ~8 min' : 'Tiempo estimado de preparación: 10 - 12 min';
 
+    const actionRow = document.getElementById('trackOrderActionRow');
+    if (actionRow) {
+        actionRow.style.display = 'flex';
+        const actionBtn = actionRow.querySelector('.btn-clear-track span');
+        if (actionBtn) actionBtn.textContent = 'Hacer nuevo pedido / Limpiar comanda';
+    }
+
     // Renderizar Código QR de Validación para Entrega (Estilo Apple Wallet)
     const qrCard = document.getElementById('orderQrValidationCard');
     const qrContainer = document.getElementById('orderQrContainer');
@@ -1633,6 +1640,13 @@ function initCloudRealtime() {
 
 function initWebSocket() {
     initCloudRealtime();
+
+    // En hosting serverless Vercel, WebSockets no están soportados por arquitectura Lambda (error 200).
+    // Usamos exclusivamente Cloud Realtime (SSE de alta velocidad) y sondeo inteligente.
+    if (window.location.hostname.endsWith('vercel.app')) {
+        activateAppHttpPolling();
+        return;
+    }
 
     if (wsClient && (wsClient.readyState === WebSocket.OPEN || wsClient.readyState === WebSocket.CONNECTING)) {
         return;
@@ -1779,6 +1793,14 @@ function handleOrderStateChange(eventData) {
 
             const pulseDot = document.getElementById('tabOrderPulse');
             if (pulseDot) pulseDot.style.display = 'none';
+
+            const actionRow = document.getElementById('trackOrderActionRow');
+            if (actionRow) {
+                actionRow.style.display = 'flex';
+                const actionBtn = actionRow.querySelector('.btn-clear-track span');
+                if (actionBtn) actionBtn.textContent = 'Hacer otro pedido';
+            }
+
             showToast(`¡Código QR verificado! Pedido #${eventData.ticket_numero} entregado.`, 'success');
             playHapticAudio('pop');
         }
@@ -2168,10 +2190,18 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         const savedOrder = localStorage.getItem('fastorder_active_order');
         if (savedOrder) {
-            const parsed = JSON.parse(savedOrder);
-            if (parsed && parsed.status !== 'ENTREGADO_CLIENTE') {
-                activeOrderTracked = parsed;
-                startOrderTracking(parsed, parsed.es_offline);
+            let parsed = JSON.parse(savedOrder);
+            if (parsed) {
+                const now = Date.now();
+                const ageMins = parsed.creado_en ? (now - new Date(parsed.creado_en).getTime()) / 60000 : 999;
+                // Si la orden ya fue entregada o tiene más de 60 minutos (comanda vieja de prueba), purgarla automáticamente
+                if (parsed.status === 'ENTREGADO_CLIENTE' || ageMins > 60) {
+                    localStorage.removeItem('fastorder_active_order');
+                    parsed = null;
+                } else {
+                    activeOrderTracked = parsed;
+                    startOrderTracking(parsed, parsed.es_offline);
+                }
             }
         }
     } catch (e) {}
@@ -2194,6 +2224,38 @@ document.addEventListener('DOMContentLoaded', () => {
         switchTab('account');
     }
 });
+
+// Descartar comanda activa para permitir un nuevo pedido
+window.dismissActiveOrder = function() {
+    activeOrderTracked = null;
+    try {
+        localStorage.removeItem('fastorder_active_order');
+    } catch (e) {}
+    const pulseDot = document.getElementById('tabOrderPulse');
+    if (pulseDot) pulseDot.style.display = 'none';
+    const qrCard = document.getElementById('orderQrValidationCard');
+    if (qrCard) qrCard.style.display = 'none';
+    const summaryBox = document.getElementById('trackOrderSummaryBox');
+    if (summaryBox) summaryBox.style.display = 'none';
+    const actionRow = document.getElementById('trackOrderActionRow');
+    if (actionRow) actionRow.style.display = 'none';
+    const ticketElem = document.getElementById('trackTicketNum');
+    if (ticketElem) ticketElem.textContent = 'Ticket #--';
+    const badge = document.getElementById('trackStatusBadge');
+    if (badge) {
+        badge.textContent = 'Sin pedidos activos';
+        badge.style.background = 'rgba(0,0,0,0.05)';
+        badge.style.color = '#64748B';
+    }
+    const etaText = document.getElementById('trackEtaText');
+    if (etaText) etaText.textContent = 'Haz un pedido desde el menú para seguir su cocción aquí.';
+    for (let s = 1; s <= 4; s++) {
+        const node = document.getElementById(`stepNode${s}`);
+        if (node) node.classList.remove('completed', 'active');
+    }
+    switchTab('menu');
+    showToast('Comanda cerrada. ¡Listo para hacer un nuevo pedido!', 'info');
+};
 
 // Restablecer Caché, Service Workers y almacenamiento local
 window.resetAppAndCache = async function() {
