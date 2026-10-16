@@ -416,6 +416,9 @@ if ('serviceWorker' in navigator) {
         try {
             const reg = await navigator.serviceWorker.register('/sw.js');
             console.log('[App] Service Worker registrado exitosamente:', reg.scope);
+            if (reg) {
+                reg.update().catch(() => {});
+            }
         } catch (err) {
             console.warn('[App] Error al registrar Service Worker:', err);
         }
