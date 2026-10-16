@@ -1383,6 +1383,10 @@ function handleOrderSuccess(order, isOffline) {
     updateCartUI();
 
     activeOrderTracked = order;
+    try {
+        localStorage.setItem('fastorder_active_order', JSON.stringify(order));
+    } catch (e) {}
+
     startOrderTracking(order, isOffline);
 
     switchTab('orders');
@@ -1419,6 +1423,9 @@ async function syncPendingOrders() {
                 
                 if (activeOrderTracked && activeOrderTracked.uuid_local === order.uuid_local) {
                     activeOrderTracked = syncedOrder;
+                    try {
+                        localStorage.setItem('fastorder_active_order', JSON.stringify(syncedOrder));
+                    } catch (e) {}
                     startOrderTracking(syncedOrder, false);
                 }
             }
@@ -1552,7 +1559,13 @@ function updateStepNodes(currentStep) {
 // 12. WEBSOCKETS CLIENT (TIEMPO REAL)
 // ==========================================
 let appPollingInterval = null;
+let appWsAttempts = 0;
+
 function initWebSocket() {
+    if (wsClient && (wsClient.readyState === WebSocket.OPEN || wsClient.readyState === WebSocket.CONNECTING)) {
+        return;
+    }
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
 
@@ -1561,6 +1574,7 @@ function initWebSocket() {
 
         wsClient.onopen = () => {
             console.log('[WS] Conectado al servidor de cocina en tiempo real.');
+            appWsAttempts = 0;
             if (appPollingInterval) {
                 clearInterval(appPollingInterval);
                 appPollingInterval = null;
@@ -1582,7 +1596,10 @@ function initWebSocket() {
 
         wsClient.onclose = () => {
             activateAppHttpPolling();
-            setTimeout(initWebSocket, 6000);
+            appWsAttempts++;
+            if (appWsAttempts < 3) {
+                setTimeout(initWebSocket, 10000);
+            }
         };
     } catch (e) {
         activateAppHttpPolling();
@@ -1594,20 +1611,27 @@ function activateAppHttpPolling() {
     appPollingInterval = setInterval(async () => {
         if (!activeOrderTracked || activeOrderTracked.status === 'ENTREGADO_CLIENTE') return;
         try {
-            const res = await fetch('/api/v1/pedidos');
+            const res = await fetch('/api/v1/pedidos?t=' + Date.now(), { cache: 'no-store' });
             if (res.ok) {
                 const orders = await res.json();
-                const matched = orders.find(o => 
-                    o.id_pedido === activeOrderTracked.id_pedido || 
-                    Number(o.ticket_numero) === Number(activeOrderTracked.ticket_numero)
-                );
-                if (matched && matched.status !== activeOrderTracked.status) {
-                    activeOrderTracked.status = matched.status;
-                    handleOrderStateChange({
-                        id_pedido: matched.id_pedido,
-                        ticket_numero: matched.ticket_numero,
-                        nuevo_estado: matched.status
-                    });
+                if (Array.isArray(orders)) {
+                    const matched = orders.find(o => 
+                        o.id_pedido === activeOrderTracked.id_pedido || 
+                        (activeOrderTracked.uuid_local && o.uuid_local === activeOrderTracked.uuid_local) ||
+                        (activeOrderTracked.ticket_numero && Number(o.ticket_numero) === Number(activeOrderTracked.ticket_numero))
+                    );
+                    if (matched && matched.status !== activeOrderTracked.status) {
+                        activeOrderTracked.status = matched.status;
+                        try {
+                            localStorage.setItem('fastorder_active_order', JSON.stringify(activeOrderTracked));
+                        } catch (e) {}
+                        handleOrderStateChange({
+                            id_pedido: matched.id_pedido,
+                            ticket_numero: matched.ticket_numero,
+                            nuevo_estado: matched.status,
+                            tiempo_estimado: matched.tiempo_estimado
+                        });
+                    }
                 }
             }
         } catch (e) {}
@@ -1617,6 +1641,11 @@ function activateAppHttpPolling() {
 function handleOrderStateChange(eventData) {
     if (!activeOrderTracked) return;
     if (activeOrderTracked.id_pedido === eventData.id_pedido || Number(activeOrderTracked.ticket_numero) === Number(eventData.ticket_numero)) {
+        activeOrderTracked.status = eventData.nuevo_estado;
+        try {
+            localStorage.setItem('fastorder_active_order', JSON.stringify(activeOrderTracked));
+        } catch (e) {}
+
         const badge = document.getElementById('trackStatusBadge');
         const etaText = document.getElementById('trackEtaText');
 
@@ -2061,6 +2090,18 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCatalog();
     initWebSocket();
     updateCustomerGreetingUI();
+
+    // Restaurar seguimiento de comanda activa si existe en almacenamiento local
+    try {
+        const savedOrder = localStorage.getItem('fastorder_active_order');
+        if (savedOrder) {
+            const parsed = JSON.parse(savedOrder);
+            if (parsed && parsed.status !== 'ENTREGADO_CLIENTE') {
+                activeOrderTracked = parsed;
+                startOrderTracking(parsed, parsed.es_offline);
+            }
+        }
+    } catch (e) {}
 
     const urlParams = new URLSearchParams(window.location.search);
     const demoState = urlParams.get('state');

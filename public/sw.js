@@ -1,8 +1,8 @@
 // FastOrder S.A. - Service Worker
 // Version: 1.0.0 (Offline-First Architecture)
 
-const CACHE_STATIC_NAME = 'fastorder-appshell-v18';
-const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v18';
+const CACHE_STATIC_NAME = 'fastorder-appshell-v19';
+const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v19';
 
 const STATIC_ASSETS = [
     '/',
@@ -88,6 +88,11 @@ self.addEventListener('fetch', (event) => {
 
     // Ignorar peticiones de WebSockets o POST a la API (se manejan vía IndexedDB / Sync)
     if (event.request.method !== 'GET' || url.protocol.startsWith('ws')) {
+        return;
+    }
+
+    // NUNCA cachear endpoints dinámicos de pedidos con Cache-First (dejar pasar a la red directamente)
+    if (url.pathname.startsWith('/api/')) {
         return;
     }
 

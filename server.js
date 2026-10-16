@@ -6,6 +6,8 @@ const http = require('http');
 const path = require('path');
 const { WebSocketServer } = require('ws');
 const crypto = require('crypto');
+const fs = require('fs');
+const os = require('os');
 
 const app = express();
 const server = http.createServer(app);
@@ -375,6 +377,50 @@ const CATALOG_DB = [
 let ORDERS_DB = [];
 
 // ==========================================
+// 1.1. PERSISTENCIA EN DISCO (/tmp) PARA SERVERLESS (VERCEL)
+// ==========================================
+const DB_FILE = path.join(os.tmpdir(), 'fastorder_state.json');
+
+function loadStateFromDisk() {
+    try {
+        if (fs.existsSync(DB_FILE)) {
+            const raw = fs.readFileSync(DB_FILE, 'utf8');
+            const data = JSON.parse(raw);
+            if (Array.isArray(data.orders)) {
+                ORDERS_DB = data.orders;
+            }
+            if (typeof data.ticketCounter === 'number' && data.ticketCounter >= ticketCounter) {
+                ticketCounter = data.ticketCounter;
+            }
+        }
+    } catch (e) {
+        console.warn('[DISK] Error leyendo persistencia temporal:', e.message);
+    }
+
+    // Asegurar que ticketCounter siempre sea mayor al número de ticket más alto existente
+    if (ORDERS_DB.length > 0) {
+        const maxTicket = Math.max(...ORDERS_DB.map(o => Number(o.ticket_numero) || 0));
+        if (maxTicket >= ticketCounter) {
+            ticketCounter = maxTicket + 1;
+        }
+    }
+}
+
+function saveStateToDisk() {
+    try {
+        fs.writeFileSync(DB_FILE, JSON.stringify({
+            ticketCounter,
+            orders: ORDERS_DB
+        }), 'utf8');
+    } catch (e) {
+        console.warn('[DISK] Error guardando persistencia temporal:', e.message);
+    }
+}
+
+// Carga inicial de estado en arranque
+loadStateFromDisk();
+
+// ==========================================
 // 2. WEBSOCKETS BROADCAST MANAGER
 // ==========================================
 function broadcastWebSocket(messageObject) {
@@ -412,13 +458,43 @@ app.get('/api/v1/productos', (req, res) => {
 
 // GET: Lista de pedidos activos (para KDS)
 app.get('/api/v1/pedidos', (req, res) => {
+    loadStateFromDisk();
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     res.json(ORDERS_DB);
+});
+
+// POST: Rehidratar pedidos desde el cliente/KDS (Resiliencia Serverless Vercel)
+app.post('/api/v1/pedidos/rehidratar', (req, res) => {
+    loadStateFromDisk();
+    const { orders } = req.body;
+    if (Array.isArray(orders)) {
+        let added = 0;
+        orders.forEach(order => {
+            const exists = ORDERS_DB.some(o => 
+                o.id_pedido === order.id_pedido || 
+                (order.uuid_local && o.uuid_local === order.uuid_local) ||
+                (order.ticket_numero && Number(o.ticket_numero) === Number(order.ticket_numero))
+            );
+            if (!exists) {
+                ORDERS_DB.unshift(order);
+                added++;
+            }
+        });
+        if (added > 0) {
+            saveStateToDisk();
+            console.log(`[Rehidratar] ${added} pedidos restaurados en la instancia serverless.`);
+        }
+    }
+    res.json({ success: true, total: ORDERS_DB.length });
 });
 
 // POST: Limpiar y resetear todas las comandas de cocina
 app.post('/api/v1/pedidos/limpiar', (req, res) => {
     ORDERS_DB = [];
     ticketCounter = 101;
+    saveStateToDisk();
     console.log('[API] Todas las comandas han sido limpiadas.');
     broadcastWebSocket({
         type: 'COCINA_REINICIADA',
@@ -429,7 +505,25 @@ app.post('/api/v1/pedidos/limpiar', (req, res) => {
 
 // POST: Crear pedido nuevo (Online)
 app.post('/api/v1/pedidos', (req, res) => {
+    loadStateFromDisk();
     const { cliente_nombre, mesa, total, items, uuid_local } = req.body;
+
+    // Garantía de Idempotencia: Si el uuid_local ya existe, devolver pedido existente sin duplicar
+    if (uuid_local) {
+        const existing = ORDERS_DB.find(o => o.uuid_local === uuid_local);
+        if (existing) {
+            console.log(`[API] Pedido duplicado prevenido por uuid_local (${uuid_local}). Devolviendo ticket #${existing.ticket_numero}`);
+            return res.status(200).json(existing);
+        }
+    }
+
+    // Asegurar que ticketCounter sea estrictamente superior a cualquier comanda existente
+    if (ORDERS_DB.length > 0) {
+        const maxTicket = Math.max(...ORDERS_DB.map(o => Number(o.ticket_numero) || 0));
+        if (maxTicket >= ticketCounter) {
+            ticketCounter = maxTicket + 1;
+        }
+    }
 
     const newTicketNum = ticketCounter++;
     const codigo_pin = Math.floor(1000 + Math.random() * 9000).toString();
@@ -450,10 +544,11 @@ app.post('/api/v1/pedidos', (req, res) => {
     };
 
     ORDERS_DB.unshift(newOrder);
+    saveStateToDisk();
 
     console.log(`[API] Nuevo pedido recibido en línea: Ticket #${newOrder.ticket_numero} (Total: S/ ${newOrder.total})`);
 
-    // Notificar a cocina KDS por WebSocket en tiempo real
+    // Notificar a cocina KDS por WebSocket en tiempo real (si está disponible)
     broadcastWebSocket({
         type: 'NUEVO_PEDIDO_COCINA',
         payload: newOrder
@@ -464,6 +559,7 @@ app.post('/api/v1/pedidos', (req, res) => {
 
 // POST: Sincronización garantizada de pedidos offline (Idempotente)
 app.post('/api/v1/pedidos/sincronizar', (req, res) => {
+    loadStateFromDisk();
     const { uuid_local, cliente_nombre, total, items, creado_en } = req.body;
 
     // Garantía de Idempotencia: Verificar si el uuid_local ya existe
@@ -471,6 +567,14 @@ app.post('/api/v1/pedidos/sincronizar', (req, res) => {
     if (existing) {
         console.log(`[Sync] Pedido ${uuid_local} ya existía previamente (Idempotencia respetada).`);
         return res.json(existing);
+    }
+
+    // Asegurar que ticketCounter sea estrictamente superior a cualquier comanda existente
+    if (ORDERS_DB.length > 0) {
+        const maxTicket = Math.max(...ORDERS_DB.map(o => Number(o.ticket_numero) || 0));
+        if (maxTicket >= ticketCounter) {
+            ticketCounter = maxTicket + 1;
+        }
     }
 
     const syncedPin = req.body.codigo_pin || Math.floor(1000 + Math.random() * 9000).toString();
@@ -495,6 +599,7 @@ app.post('/api/v1/pedidos/sincronizar', (req, res) => {
     };
 
     ORDERS_DB.unshift(syncedOrder);
+    saveStateToDisk();
 
     console.log(`[Sync] ¡Pedido Offline sincronizado con éxito! Ticket #${syncedOrder.ticket_numero} (UUID: ${uuid_local})`);
 
@@ -507,18 +612,41 @@ app.post('/api/v1/pedidos/sincronizar', (req, res) => {
     res.status(201).json(syncedOrder);
 });
 
-// PATCH: Transición de estado por cocina KDS
+// PATCH: Transición de estado por cocina KDS (Resiliente a reinicios serverless)
 app.patch('/api/v1/pedidos/:id/estado', (req, res) => {
+    loadStateFromDisk();
     const { id } = req.params;
-    const { nuevo_estado, ticket_numero } = req.body;
+    const { nuevo_estado, ticket_numero, order_backup } = req.body;
 
-    const order = ORDERS_DB.find(o => o.id_pedido === id || o.ticket_numero === Number(ticket_numero));
+    let order = ORDERS_DB.find(o => o.id_pedido === id || (ticket_numero && Number(o.ticket_numero) === Number(ticket_numero)));
 
+    // Si la comanda no existía en la memoria de esta instancia serverless, reconstruirla para no bloquear la operación
     if (!order) {
-        return res.status(404).json({ error: 'Pedido no encontrado' });
+        if (order_backup) {
+            order = { ...order_backup, status: nuevo_estado };
+            ORDERS_DB.unshift(order);
+        } else {
+            const fallbackNum = Number(ticket_numero) || 103;
+            order = {
+                id_pedido: id,
+                ticket_numero: fallbackNum,
+                cliente_nombre: req.body.cliente_nombre || 'Cliente FastOrder',
+                mesa: req.body.mesa || 'Mesa 4',
+                status: nuevo_estado,
+                items: [],
+                creado_en: new Date().toISOString()
+            };
+            ORDERS_DB.unshift(order);
+        }
+    } else {
+        order.status = nuevo_estado;
     }
 
-    order.status = nuevo_estado;
+    if (nuevo_estado === 'ENTREGADO_CLIENTE') {
+        order.entregado_en = new Date().toISOString();
+    }
+
+    saveStateToDisk();
     console.log(`[KDS] Transición de Ticket #${order.ticket_numero} a estado: ${nuevo_estado}`);
 
     // Emitir a todos los clientes conectados y KDS
@@ -535,6 +663,7 @@ app.patch('/api/v1/pedidos/:id/estado', (req, res) => {
 
 // POST: Validar y Despachar Pedido mediante Escaneo de Código QR o PIN Secreto de Respaldo
 app.post('/api/v1/pedidos/verificar-qr', (req, res) => {
+    loadStateFromDisk();
     let { qr_data, ticket_numero, pin_secreto } = req.body;
     let order = null;
 
@@ -598,6 +727,7 @@ app.post('/api/v1/pedidos/verificar-qr', (req, res) => {
     order.verificado_por_qr = !pin_secreto;
     order.verificado_por_pin = !!pin_secreto;
 
+    saveStateToDisk();
     console.log(`[VERIFICACION] Ticket #${order.ticket_numero} entregado exitosamente mediante ${pin_secreto ? 'PIN SECRETO (' + pin_secreto + ')' : 'ESCANEO QR'}`);
 
     broadcastWebSocket({

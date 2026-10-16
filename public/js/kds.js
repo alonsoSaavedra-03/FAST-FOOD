@@ -73,76 +73,152 @@ document.getElementById('btnToggleSound').addEventListener('click', () => {
 });
 
 // ==========================================
-// 3. CARGA INICIAL DE COMANDAS & WEBSOCKETS
+// 3. PERSISTENCIA LOCAL & CARGA DE COMANDAS (OFFLINE-FIRST & SERVERLESS)
 // ==========================================
+let kdsPollingInterval = null;
+let kdsWsAttempts = 0;
+let lastRenderedHash = '';
+let isRehydratingServer = false;
+
+function saveKdsOrdersLocal() {
+    try {
+        localStorage.setItem('fastorder_kds_orders', JSON.stringify(kdsOrders));
+    } catch (e) {}
+}
+
+function loadKdsOrdersLocal() {
+    try {
+        const raw = localStorage.getItem('fastorder_kds_orders');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                kdsOrders = parsed.filter(o => o.status !== 'ENTREGADO_CLIENTE');
+                renderKdsBoard();
+            }
+        }
+    } catch (e) {}
+}
+
 async function loadKdsOrders() {
     try {
-        const res = await fetch('/api/v1/pedidos');
+        const res = await fetch('/api/v1/pedidos?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
             const list = await res.json();
-            // Filtrar solo las que no estén entregadas todavía
-            kdsOrders = list.filter(o => o.status !== 'ENTREGADO_CLIENTE');
-            renderKdsBoard();
+            if (Array.isArray(list)) {
+                // Si el servidor serverless se reinició en frío (0 órdenes en memoria)
+                // pero KDS tiene órdenes locales activas, rehidratar el servidor automáticamente
+                if (list.length === 0 && kdsOrders.length > 0 && !isRehydratingServer) {
+                    isRehydratingServer = true;
+                    fetch('/api/v1/pedidos/rehidratar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orders: kdsOrders })
+                    }).catch(() => {}).finally(() => { isRehydratingServer = false; });
+                } else if (list.length > 0) {
+                    const serverOrders = list.filter(o => o.status !== 'ENTREGADO_CLIENTE');
+                    
+                    // Mezclar manteniendo cualquier comanda local válida
+                    const merged = [...serverOrders];
+                    kdsOrders.forEach(localOrd => {
+                        const exists = merged.some(s => 
+                            s.id_pedido === localOrd.id_pedido || 
+                            (localOrd.uuid_local && s.uuid_local === localOrd.uuid_local) ||
+                            (localOrd.ticket_numero && Number(s.ticket_numero) === Number(localOrd.ticket_numero))
+                        );
+                        if (!exists && localOrd.status !== 'ENTREGADO_CLIENTE') {
+                            merged.push(localOrd);
+                        }
+                    });
+                    kdsOrders = merged;
+                }
+
+                // Generar hash de estado: SOLO re-renderizar si hubo un cambio real
+                // para evitar parpadeos y que se destruya el DOM mientras el usuario interactúa
+                const currentHash = JSON.stringify(kdsOrders.map(o => ({ id: o.id_pedido, s: o.status, t: o.ticket_numero })));
+                if (currentHash !== lastRenderedHash) {
+                    lastRenderedHash = currentHash;
+                    saveKdsOrdersLocal();
+                    renderKdsBoard();
+                }
+            }
         }
     } catch (err) {
-        console.error('[KDS] Error al cargar pedidos iniciales:', err);
+        console.warn('[KDS] Sondeo HTTP temporalmente no disponible:', err.message);
     }
 }
 
 function initKdsWebSocket() {
+    if (wsConnection && (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING)) {
+        return;
+    }
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-    wsConnection = new WebSocket(wsUrl);
+    try {
+        wsConnection = new WebSocket(wsUrl);
 
-    let pollingInterval = null;
-
-    wsConnection.onopen = () => {
-        console.log('[KDS WS] Conectado al broker de cocina.');
-        if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
-        const badge = document.getElementById('kdsWsBadge');
-        badge.className = 'ws-indicator ws-online';
-        document.getElementById('kdsWsText').textContent = 'WSS Conectado';
-    };
-
-    wsConnection.onmessage = (event) => {
-        try {
-            const msg = JSON.parse(event.data);
-            console.log('[KDS WS] Evento entrante:', msg.type);
-
-            if (msg.type === 'NUEVO_PEDIDO_COCINA') {
-                handleNewOrderFromClient(msg.payload);
-            } else if (msg.type === 'COCINA_ESTADO_ACTUALIZADO') {
-                handleStateUpdate(msg);
-            } else if (msg.type === 'COCINA_REINICIADA') {
-                kdsOrders = [];
-                renderKdsBoard();
-                showKdsDynamicIsland('Tablero Limpio', 'Comandas reseteadas', 'info');
+        wsConnection.onopen = () => {
+            console.log('[KDS WS] Conectado al broker de cocina en tiempo real.');
+            kdsWsAttempts = 0;
+            if (kdsPollingInterval) { 
+                clearInterval(kdsPollingInterval); 
+                kdsPollingInterval = null; 
             }
-        } catch (e) {}
-    };
-
-    wsConnection.onerror = () => {
-        // Fallback para entornos serverless (como Vercel)
-        if (!pollingInterval) {
-            console.log('[KDS] WebSocket no disponible en este hosting. Activando sondeo HTTP automático (Polling cada 3s)...');
             const badge = document.getElementById('kdsWsBadge');
-            badge.className = 'ws-indicator ws-online';
-            document.getElementById('kdsWsText').textContent = 'Sync API (3s)';
-            pollingInterval = setInterval(loadKdsOrders, 3000);
-        }
-    };
+            if (badge) badge.className = 'ws-indicator ws-online';
+            const wsText = document.getElementById('kdsWsText');
+            if (wsText) wsText.textContent = 'WSS Conectado';
+        };
 
-    wsConnection.onclose = () => {
-        if (!pollingInterval) {
-            console.warn('[KDS WS] Conexión perdida. Activando sondeo HTTP...');
-            const badge = document.getElementById('kdsWsBadge');
-            badge.className = 'ws-indicator ws-online';
-            document.getElementById('kdsWsText').textContent = 'Sync API (3s)';
-            pollingInterval = setInterval(loadKdsOrders, 3000);
-        }
-        setTimeout(initKdsWebSocket, 6000);
-    };
+        wsConnection.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                console.log('[KDS WS] Evento entrante:', msg.type);
+
+                if (msg.type === 'NUEVO_PEDIDO_COCINA') {
+                    handleNewOrderFromClient(msg.payload);
+                } else if (msg.type === 'COCINA_ESTADO_ACTUALIZADO') {
+                    handleStateUpdate(msg);
+                } else if (msg.type === 'COCINA_REINICIADA') {
+                    kdsOrders = [];
+                    saveKdsOrdersLocal();
+                    lastRenderedHash = '';
+                    renderKdsBoard();
+                    showKdsDynamicIsland('Tablero Limpio', 'Comandas reseteadas', 'info');
+                }
+            } catch (e) {}
+        };
+
+        wsConnection.onerror = () => {
+            activateKdsHttpPolling();
+        };
+
+        wsConnection.onclose = () => {
+            activateKdsHttpPolling();
+            kdsWsAttempts++;
+            // En Vercel / serverless WebSockets no existen: reintentar máximo 2 veces para evitar bucles infinitos
+            if (kdsWsAttempts < 3) {
+                setTimeout(initKdsWebSocket, 10000);
+            } else {
+                console.log('[KDS] Hosting serverless (Vercel) detectado. Modo HTTP Polling sincronizado.');
+            }
+        };
+    } catch (e) {
+        activateKdsHttpPolling();
+    }
+}
+
+function activateKdsHttpPolling() {
+    const badge = document.getElementById('kdsWsBadge');
+    if (badge) badge.className = 'ws-indicator ws-online';
+    const wsText = document.getElementById('kdsWsText');
+    if (wsText) wsText.textContent = 'Sync API (3s)';
+
+    if (!kdsPollingInterval) {
+        console.log('[KDS] Activando sondeo HTTP automático único (Polling cada 3s)...');
+        kdsPollingInterval = setInterval(loadKdsOrders, 3000);
+    }
 }
 
 // ==========================================
@@ -481,23 +557,34 @@ setInterval(updateTimers, 1000);
 // 6. ACCIONES DEL COCINERO (CAMBIO DE ESTADO)
 // ==========================================
 window.updateOrderStatus = async function(idPedido, nuevoEstado, ticketNum) {
+    // 1. Actualización optimista inmediata en local
+    handleStateUpdate({
+        id_pedido: idPedido,
+        ticket_numero: ticketNum,
+        nuevo_estado: nuevoEstado
+    });
+    saveKdsOrdersLocal();
+    lastRenderedHash = JSON.stringify(kdsOrders.map(o => ({ id: o.id_pedido, s: o.status, t: o.ticket_numero })));
+
+    // 2. Persistir en el servidor
     try {
+        const orderBackup = kdsOrders.find(o => o.id_pedido === idPedido || Number(o.ticket_numero) === Number(ticketNum));
         const res = await fetch(`/api/v1/pedidos/${idPedido}/estado`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nuevo_estado: nuevoEstado, ticket_numero: ticketNum })
+            body: JSON.stringify({ 
+                nuevo_estado: nuevoEstado, 
+                ticket_numero: ticketNum,
+                order_backup: orderBackup
+            })
         });
 
         if (res.ok) {
             const data = await res.json();
-            handleStateUpdate({
-                id_pedido: idPedido,
-                ticket_numero: ticketNum,
-                nuevo_estado: nuevoEstado
-            });
+            console.log(`[KDS] Transición del ticket #${ticketNum} confirmada:`, nuevoEstado);
         }
     } catch (err) {
-        console.error('[KDS] Error al cambiar estado del pedido:', err);
+        console.warn('[KDS] Servidor temporalmente inaccesible, cambio guardado localmente:', err.message);
     }
 };
 
@@ -857,6 +944,8 @@ window.clearAllKdsOrders = async function() {
     try {
         await fetch('/api/v1/pedidos/limpiar', { method: 'POST' });
         kdsOrders = [];
+        saveKdsOrdersLocal();
+        lastRenderedHash = '';
         renderKdsBoard();
         showKdsDynamicIsland('Tablero Limpio', 'Comandas reseteadas', 'info');
     } catch (e) {
@@ -866,16 +955,22 @@ window.clearAllKdsOrders = async function() {
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Cargar estado previo desde caché local para despliegue instantáneo
+    loadKdsOrdersLocal();
+
+    // 2. Sincronizar con servidor y conectar WebSockets / Polling
     loadKdsOrders();
     initKdsWebSocket();
 
-    // Auto-verificación inmediata si se abrió mediante escaneo de cámara de celular (URL con parámetros)
+    // 3. Auto-verificación inmediata si se abrió mediante escaneo de cámara de celular (URL con parámetros)
     const urlParams = new URLSearchParams(window.location.search);
     const verifyTicket = urlParams.get('verify_ticket') || urlParams.get('verify');
     const verifyPin = urlParams.get('pin');
     if (verifyTicket || verifyPin) {
         setTimeout(() => {
             processScannedQrCode(window.location.href);
+            // Limpiar parámetros de la URL para que no se re-procese si se recarga
+            window.history.replaceState({}, document.title, window.location.pathname);
         }, 500);
     }
 });
