@@ -1,146 +1,386 @@
-/* FastOrder S.A. - Estilos KDS (Kitchen Display System) */
-:root {
-    --kds-bg: #0F172A;
-    --kds-header: #1E293B;
-    --kds-card: #1E293B;
-    --kds-border: #334155;
-    --kds-text: #F8FAFC;
-    --kds-text-dim: #94A3B8;
-    
-    --timer-green: #10B981;
-    --timer-yellow: #F59E0B;
-    --timer-red: #EF4444;
+/* ==========================================================================
+   FASTORDER S.A. - KITCHEN DISPLAY SYSTEM (KDS)
+   Diseño Minimalista, Limpio y Ordenado (Estilo Apple / iOS Modern Light)
+   100% Responsivo: Optimizado para PC y Celulares
+   ========================================================================== */
 
-    --btn-prep: #3B82F6;
-    --btn-ready: #10B981;
-    --btn-dispatch: #64748B;
+:root {
+    /* Superficies y Fondos Minimalistas */
+    --kds-bg: #F4F6F9;
+    --kds-surface: #FFFFFF;
+    --kds-surface-subtle: #FAFBFD;
+    --kds-surface-panel: #F8FAFC;
+    --kds-border: rgba(0, 0, 0, 0.08);
+    --kds-border-light: rgba(0, 0, 0, 0.05);
+
+    /* Tipografía y Textos */
+    --kds-text-primary: #0F172A;
+    --kds-text-secondary: #475569;
+    --kds-text-muted: #94A3B8;
+
+    /* Acentos Semánticos Suaves (Sin neón ni estridencia) */
+    --kds-blue-subtle: #EFF6FF;
+    --kds-blue-text: #1D4ED8;
+    --kds-blue-border: #DBEAFE;
+    --kds-blue-primary: #2563EB;
+
+    --kds-amber-subtle: #FFFBEB;
+    --kds-amber-text: #B45309;
+    --kds-amber-border: #FDE68A;
+    --kds-amber-primary: #D97706;
+
+    --kds-green-subtle: #ECFDF5;
+    --kds-green-text: #047857;
+    --kds-green-border: #A7F3D0;
+    --kds-green-primary: #10B981;
+
+    --kds-orange-primary: #EA580C;
+
+    /* Timers Suaves */
+    --timer-green-bg: #ECFDF5;
+    --timer-green-text: #059669;
+    --timer-yellow-bg: #FFFBEB;
+    --timer-yellow-text: #B45309;
+    --timer-red-bg: #FEF2F2;
+    --timer-red-text: #DC2626;
+
+    /* Sombras Naturales y Suaves */
+    --kds-shadow-card: 0 2px 10px -2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+    --kds-shadow-hover: 0 6px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
+    --kds-shadow-modal: 0 20px 48px -8px rgba(0, 0, 0, 0.14), 0 4px 16px rgba(0, 0, 0, 0.05);
+
+    /* Curva iOS Spring */
+    --ios-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* RESET GENERAL Y TIPOGRAFÍA APPLE */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    background-color: var(--kds-bg);
+    color: var(--kds-text-primary);
+    overflow: hidden;
+    position: fixed;
 }
 
 body {
-    background-color: var(--kds-bg);
-    color: var(--kds-text);
-    height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
-/* TOP STATUS BAR */
+/* ==========================================================================
+   DYNAMIC ISLAND (NOTIFICACIÓN FLOTANTE ELEGANTE)
+   ========================================================================== */
+.kds-dynamic-island {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-70px) scale(0.9);
+    background: #0F172A;
+    color: #FFFFFF;
+    border-radius: 999px;
+    padding: 6px 16px 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.25);
+    z-index: 100000;
+    pointer-events: none;
+    opacity: 0;
+    transition: transform 0.35s var(--ios-ease-spring), opacity 0.2s ease;
+}
+
+.kds-dynamic-island.island-active {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+}
+
+.island-icon-wrap {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.island-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.island-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1.2;
+}
+
+.island-sub {
+    font-size: 0.65rem;
+    color: #94A3B8;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   TOP STATUS BAR / HEADER (ESTILO APPLE GLASS CLARO)
+   ========================================================================== */
 .kds-header {
-    background: var(--kds-header);
-    border-bottom: 2px solid var(--kds-border);
-    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--kds-border);
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    flex-shrink: 0;
+    z-index: 100;
 }
 
 .kds-brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
 }
 
-.kds-brand h1 {
-    font-size: 1.3rem;
-    font-weight: 900;
-    color: #F8FAFC;
-    letter-spacing: 1px;
+.kds-logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.kds-title-wrap h1 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--kds-text-primary);
+    letter-spacing: -0.01em;
+    line-height: 1.15;
 }
 
 .kds-badge {
-    background: #F59E0B;
-    color: #0F172A;
-    font-size: 0.75rem;
-    font-weight: 800;
-    padding: 3px 8px;
-    border-radius: 6px;
+    display: inline-block;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    color: var(--kds-text-secondary);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 1px 8px;
+    border-radius: 999px;
+    margin-top: 2px;
 }
 
 .kds-metrics {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 8px;
 }
 
 .metric-pill {
-    background: #0F172A;
+    background: var(--kds-surface-panel);
     border: 1px solid var(--kds-border);
-    padding: 6px 14px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-    font-weight: 700;
-}
-
-.metric-num {
-    color: #38BDF8;
-    font-size: 1.1rem;
-}
-
-.ws-indicator {
+    padding: 4px 10px;
+    border-radius: 999px;
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 5px 12px;
-    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--kds-text-secondary);
+}
+
+.metric-num {
+    color: var(--kds-text-primary);
+    font-weight: 900;
+    font-size: 0.9rem;
+}
+
+.metric-clock-pill {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    color: var(--kds-text-primary);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.ws-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
 }
 
 .ws-online {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34D399;
-    border: 1px solid #059669;
+    background: var(--kds-green-subtle);
+    color: var(--kds-green-text);
+    border: 1px solid var(--kds-green-border);
+}
+
+.ws-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--kds-green-primary);
 }
 
 .ws-offline {
-    background: rgba(239, 68, 68, 0.2);
-    color: #F87171;
-    border: 1px solid #DC2626;
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
 }
 
-/* SOUND & FILTER CONTROLS */
+.ws-offline .ws-dot {
+    background: #EF4444;
+}
+
+/* BOTONES DE CONTROL DE CABECERA */
 .kds-controls {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
 }
 
 .btn-ctrl {
-    background: #334155;
-    color: white;
-    border: none;
-    padding: 7px 14px;
-    border-radius: 8px;
-    font-size: 0.82rem;
+    background: var(--kds-surface-panel);
+    border: 1px solid var(--kds-border);
+    color: var(--kds-text-primary);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.76rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s var(--ios-ease-spring);
+    text-decoration: none;
 }
 
 .btn-ctrl:hover {
-    background: #475569;
+    background: #E2E8F0;
+    transform: translateY(-1px);
 }
 
-/* MAIN TICKETS GRID */
+.btn-ctrl:active {
+    transform: scale(0.95);
+}
+
+.btn-ctrl-qr {
+    background: #FFF7ED;
+    border-color: #FED7AA;
+    color: #C2410C;
+}
+
+.btn-ctrl-qr:hover {
+    background: #FFEDD5;
+}
+
+/* ==========================================================================
+   BARRA DE SEGMENTOS ESTILO APPLE IOS (SEGMENTED CONTROL)
+   ========================================================================== */
+.kds-segmented-bar {
+    background: rgba(244, 246, 249, 0.95);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--kds-border-light);
+    padding: 7px 16px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 90;
+}
+
+.ios-segmented-control {
+    background: #E2E8F0;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 999px;
+    padding: 3px;
+    display: flex;
+    gap: 3px;
+    width: 100%;
+    max-width: 520px;
+}
+
+.seg-item {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    padding: 6px 12px;
+    color: var(--kds-text-secondary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.2s var(--ios-ease-spring);
+    white-space: nowrap;
+}
+
+.seg-item:hover {
+    color: var(--kds-text-primary);
+}
+
+.seg-item.active {
+    background: #FFFFFF;
+    color: var(--kds-text-primary);
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+}
+
+.seg-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 800;
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--kds-text-secondary);
+    transition: all 0.2s;
+}
+
+.seg-item.active .seg-count {
+    background: #0F172A;
+    color: #FFFFFF;
+}
+
+/* ==========================================================================
+   MAIN TICKETS BOARD (PANORÁMICO EN PC, VERTICAL EN MÓVIL)
+   ========================================================================== */
 .kds-main {
     flex: 1;
-    padding: 20px;
+    padding: 16px 20px;
     overflow-x: auto;
     overflow-y: hidden;
     display: flex;
-    gap: 18px;
+    gap: 16px;
+    -webkit-overflow-scrolling: touch;
 }
 
 .kds-grid {
@@ -149,214 +389,938 @@ body {
     height: 100%;
 }
 
-/* INDIVIDUAL TICKET CARD */
+/* EMPTY STATE MINIMALISTA */
+.kds-empty {
+    margin: auto;
+    text-align: center;
+    color: var(--kds-text-muted);
+    padding: 40px 20px;
+}
+
+.kds-empty-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+    opacity: 0.7;
+}
+
+.kds-empty h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--kds-text-primary);
+    margin-bottom: 4px;
+}
+
+.kds-empty p {
+    font-size: 0.8rem;
+    max-width: 320px;
+    margin: 0 auto;
+    color: var(--kds-text-secondary);
+    line-height: 1.4;
+}
+
+/* ==========================================================================
+   INDIVIDUAL TICKET CARD (ESTILO APPLE CARD / MINIMALISTA Y ORDENADO)
+   ========================================================================== */
 .ticket-card {
-    width: 320px;
-    background: var(--kds-card);
-    border: 2px solid var(--kds-border);
-    border-radius: 14px;
+    width: 310px;
+    flex-shrink: 0;
+    height: 100%;
+    max-height: calc(100vh - 160px);
+    background: var(--kds-surface);
+    border: 1px solid var(--kds-border);
+    border-radius: 16px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-    transition: transform 0.2s ease, border-color 0.2s ease;
-    animation: fadeInTicket 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--kds-shadow-card);
+    transition: transform 0.2s var(--ios-ease-spring), box-shadow 0.2s ease;
+    animation: ticketEnter 0.25s var(--ios-ease-spring);
+    position: relative;
+    overflow: hidden;
 }
 
-@keyframes fadeInTicket {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+@keyframes ticketEnter {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.ticket-card.status-recibido {
-    border-top: 6px solid #38BDF8;
+.ticket-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--kds-shadow-hover);
 }
 
-.ticket-card.status-preparacion {
-    border-top: 6px solid #F59E0B;
+/* Línea superior discreta de 3px para estado */
+.ticket-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 2;
 }
 
-.ticket-card.status-listo {
-    border-top: 6px solid #10B981;
+.ticket-card.status-recibido::before {
+    background: var(--kds-blue-primary);
 }
 
+.ticket-card.status-preparacion::before {
+    background: var(--kds-amber-primary);
+}
+
+.ticket-card.status-listo::before {
+    background: var(--kds-green-primary);
+}
+
+/* CABECERA DEL TICKET (ORDENADA EN 2 FILAS LIMPIAS) */
 .ticket-header {
-    padding: 12px 14px;
-    background: #182234;
-    border-bottom: 1px solid var(--kds-border);
+    padding: 12px 14px 10px;
+    background: var(--kds-surface-subtle);
+    border-bottom: 1px solid var(--kds-border-light);
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ticket-header-top {
+    display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.ticket-id-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .ticket-number {
     font-size: 1.3rem;
     font-weight: 900;
-    color: #F8FAFC;
+    color: var(--kds-text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.ticket-status-badge {
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.ticket-status-badge.status-recibido {
+    background: var(--kds-blue-subtle);
+    color: var(--kds-blue-text);
+    border: 1px solid var(--kds-blue-border);
+}
+
+.ticket-status-badge.status-preparacion {
+    background: var(--kds-amber-subtle);
+    color: var(--kds-amber-text);
+    border: 1px solid var(--kds-amber-border);
+}
+
+.ticket-status-badge.status-listo {
+    background: var(--kds-green-subtle);
+    color: var(--kds-green-text);
+    border: 1px solid var(--kds-green-border);
+}
+
+.ticket-timer-box {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .ticket-origin {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 800;
-    padding: 2px 7px;
-    border-radius: 4px;
-    background: #334155;
-    color: #E2E8F0;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #F1F5F9;
+    color: var(--kds-text-secondary);
+    letter-spacing: 0.03em;
 }
 
 .ticket-origin.offline {
-    background: #B45309;
-    color: #FEF3C7;
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FDE68A;
 }
 
-/* TIMER */
 .ticket-timer {
-    font-size: 1rem;
+    font-size: 0.85rem;
     font-weight: 800;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    padding: 2px 7px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+}
+
+.timer-green {
+    background: var(--timer-green-bg);
+    color: var(--timer-green-text);
+    border-color: var(--kds-green-border);
+}
+
+.timer-yellow {
+    background: var(--timer-yellow-bg);
+    color: var(--timer-yellow-text);
+    border-color: var(--kds-amber-border);
+}
+
+.timer-red {
+    background: var(--timer-red-bg);
+    color: var(--timer-red-text);
+    border-color: #FECACA;
+}
+
+/* SEGUNDA FILA: CLIENTE, MESA Y PIN SECRETO (TODO EN 1 LÍNEA) */
+.ticket-header-sub {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.ticket-client-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ticket-client-name {
+    font-size: 0.8rem;
+    color: var(--kds-text-primary);
+    font-weight: 800;
+}
+
+.ticket-table-pill {
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: #F1F5F9;
+    color: var(--kds-text-secondary);
+    padding: 1px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* PIN SECRETO EN 1 SOLA LÍNEA HORIZONTAL */
+.ticket-pin-pill {
+    display: inline-flex;
+    align-items: center;
     gap: 4px;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #92400E;
+    white-space: nowrap;
+    flex-shrink: 0;
+    user-select: all;
 }
 
-.timer-green { color: var(--timer-green); }
-.timer-yellow { color: var(--timer-yellow); }
-.timer-red { color: var(--timer-red); animation: blink 1.2s infinite; }
-
-@keyframes blink {
-    50% { opacity: 0.5; }
+.ticket-pin-pill strong {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    color: #78350F;
 }
 
-/* ITEMS LIST IN TICKET */
+/* CUERPO DEL TICKET (LISTA MINIMALISTA DE PRODUCTOS) */
 .ticket-body {
     flex: 1;
     padding: 12px 14px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--kds-surface);
 }
 
 .ticket-item {
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid #F1F5F9;
 }
 
-.item-main {
+.ticket-item:last-child {
+    border-bottom: none;
+}
+
+.item-title-row {
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #FFFFFF;
+    align-items: baseline;
+    gap: 6px;
+    line-height: 1.25;
 }
 
 .item-qty {
-    background: #0284C7;
-    color: white;
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 900;
+    color: var(--kds-blue-primary);
     flex-shrink: 0;
 }
 
-.item-mods {
-    margin-left: 30px;
-    margin-top: 4px;
+.item-name {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--kds-text-primary);
 }
 
-.mod-tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 4px;
-    display: inline-block;
-    margin-right: 4px;
-    margin-bottom: 2px;
+/* LISTA MINIMALISTA DE DETALLES Y MODIFICADORES */
+.item-specs-list {
+    list-style: none;
+    margin: 5px 0 0 16px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
-.mod-add {
-    background: rgba(16, 185, 129, 0.2);
-    color: #6EE7B7;
-    border: 1px solid rgba(16, 185, 129, 0.4);
+.item-specs-list li {
+    font-size: 0.74rem;
+    color: var(--kds-text-secondary);
+    font-weight: 600;
+    line-height: 1.35;
+    position: relative;
+    padding-left: 10px;
 }
 
-.mod-rem {
-    background: rgba(239, 68, 68, 0.2);
-    color: #FCA5A5;
-    border: 1px solid rgba(239, 68, 68, 0.4);
-}
-
-.item-notes {
+.item-specs-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #94A3B8;
     font-size: 0.75rem;
-    color: #FDE047;
-    margin-left: 30px;
-    margin-top: 4px;
-    font-style: italic;
 }
 
-/* ACTION BUTTONS */
+/* FOOTER DEL TICKET Y BOTÓN DE ACCIÓN */
 .ticket-footer {
-    padding: 12px 14px;
-    background: #182234;
-    border-top: 1px solid var(--kds-border);
+    padding: 10px 14px 12px;
+    background: var(--kds-surface-subtle);
+    border-top: 1px solid var(--kds-border-light);
 }
 
 .btn-kds-action {
     width: 100%;
-    padding: 12px;
+    min-height: 40px;
     border: none;
     border-radius: 10px;
-    font-size: 0.95rem;
+    font-size: 0.86rem;
     font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: opacity 0.2s, transform 0.1s;
+    gap: 7px;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .btn-kds-action:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
 .btn-start-prep {
-    background: #2563EB;
-    color: white;
+    background: var(--kds-blue-primary);
+    color: #FFFFFF;
+}
+
+.btn-start-prep:hover {
+    background: #1D4ED8;
 }
 
 .btn-mark-ready {
+    background: var(--kds-green-primary);
+    color: #FFFFFF;
+}
+
+.btn-mark-ready:hover {
     background: #059669;
-    color: white;
 }
 
-.btn-dispatch {
-    background: #475569;
-    color: #E2E8F0;
+.btn-scan-qr-delivery {
+    background: var(--kds-orange-primary);
+    color: #FFFFFF;
 }
 
-/* EMPTY STATE */
-.kds-empty {
-    margin: auto;
-    text-align: center;
-    color: var(--kds-text-dim);
+.btn-scan-qr-delivery:hover {
+    background: #C2410C;
 }
 
-.kds-empty-icon {
-    font-size: 4rem;
-    margin-bottom: 12px;
-    opacity: 0.6;
+/* ==========================================================================
+   BOTÓN FLOTANTE MÓVIL ESTILO APPLE (FAB)
+   ========================================================================== */
+.kds-mobile-fab-qr {
+    display: none; /* Oculto en PC por defecto */
 }
 
-.kds-empty h2 {
-    font-size: 1.3rem;
+/* ==========================================================================
+   MODAL ESCÁNER QR DE ENTREGA & VALIDACIÓN KDS
+   ========================================================================== */
+.kds-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeInModal 0.2s ease;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.kds-scanner-card {
+    background: #FFFFFF;
+    border: 1px solid var(--kds-border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--kds-shadow-modal);
+    overflow: hidden;
+    animation: kdsModalIn 0.25s var(--ios-ease-spring);
+    position: relative;
+}
+
+@keyframes kdsModalIn {
+    from { opacity: 0; transform: scale(0.96) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.sheet-handle {
+    display: none;
+}
+
+.kds-scanner-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--kds-surface-subtle);
+    border-bottom: 1px solid var(--kds-border-light);
+}
+
+.scanner-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.kds-qr-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #FFF7ED;
+    border: 1px solid #FED7AA;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.scanner-header-left h3 {
+    font-size: 1rem;
     font-weight: 800;
-    color: #CBD5E1;
+    color: var(--kds-text-primary);
 }
 
-.kds-empty p {
-    font-size: 0.85rem;
-    max-width: 380px;
-    margin: 6px auto 0;
+.scanner-header-left span {
+    font-size: 0.72rem;
+    color: var(--kds-text-secondary);
+    display: block;
+    margin-top: 1px;
+}
+
+.btn-close-kds {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #F1F5F9;
+    border: none;
+    color: var(--kds-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-close-kds:hover {
+    background: #E2E8F0;
+    color: var(--kds-text-primary);
+}
+
+.btn-close-kds:active {
+    transform: scale(0.92);
+}
+
+.kds-scanner-body {
+    padding: 16px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* VISOR DE CÁMARA ELEGANTE */
+.scanner-viewport-box {
+    position: relative;
+    width: 100%;
+    height: 190px;
+    background: #0B0F19;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scanner-viewport-box video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.scanner-reticle {
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    pointer-events: none;
+}
+
+.reticle-corner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-color: #F59E0B;
+    border-style: solid;
+}
+
+.reticle-corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.reticle-corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.reticle-corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.reticle-corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+.scanner-laser {
+    position: absolute;
+    top: 0;
+    left: 8px;
+    right: 8px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #F59E0B, #EA580C, #F59E0B, transparent);
+    animation: scannerScan 2s infinite ease-in-out;
+}
+
+@keyframes scannerScan {
+    0%, 100% { top: 8px; opacity: 0.5; }
+    50% { top: 120px; opacity: 1; }
+}
+
+.camera-status-pill {
+    position: absolute;
+    bottom: 8px;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(6px);
+    padding: 3px 10px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: #FFFFFF;
+}
+
+.status-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10B981;
+}
+
+/* PANEL DE SELECCIÓN RÁPIDA & ENTRADA DE PIN */
+.scanner-controls-panel {
+    background: var(--kds-surface-panel);
+    border: 1px solid var(--kds-border);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+.scanner-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--kds-text-secondary);
+    margin-bottom: 8px;
+}
+
+.scanner-hint-badge {
+    font-size: 0.68rem;
+    color: #0284C7;
+    font-weight: 700;
+}
+
+.ready-tickets-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+    min-height: 32px;
+}
+
+.ready-ticket-chip {
+    background: #FFFFFF;
+    border: 1px solid var(--kds-border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    color: var(--kds-text-primary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.ready-ticket-chip:hover {
+    background: var(--kds-green-subtle);
+    border-color: var(--kds-green-border);
+    color: var(--kds-green-text);
+    transform: translateY(-1px);
+}
+
+.ready-ticket-chip:active {
+    transform: scale(0.96);
+}
+
+.ready-ticket-chip.chip-target {
+    border-color: #FDE68A;
+    background: #FFFBEB;
+    color: #92400E;
+}
+
+.manual-qr-form {
+    margin-top: 4px;
+}
+
+.manual-input-wrap {
+    display: flex;
+    align-items: center;
+    background: #FFFFFF;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.manual-input-wrap:focus-within {
+    border-color: var(--kds-orange-primary);
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
+}
+
+.manual-input-icon {
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+.manual-input-wrap input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 9px 12px;
+    color: var(--kds-text-primary);
+    font-size: 0.84rem;
+    font-weight: 600;
+    outline: none;
+}
+
+.manual-input-wrap input::placeholder {
+    color: var(--kds-text-muted);
+}
+
+.btn-verify-manual {
+    background: #0F172A;
+    border: none;
+    color: #FFFFFF;
+    font-weight: 800;
+    font-size: 0.78rem;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-verify-manual:hover {
+    background: #1E293B;
+}
+
+.btn-verify-manual:active {
+    transform: scale(0.96);
+}
+
+/* BANNER DE RESULTADO */
+.verification-result-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--kds-green-subtle);
+    border: 1px solid var(--kds-green-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    animation: kdsResultIn 0.3s var(--ios-ease-spring);
+}
+
+@keyframes kdsResultIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.result-icon-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.result-details h4 {
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: var(--kds-green-text);
+}
+
+.result-details p {
+    font-size: 0.72rem;
+    color: #065F46;
+    margin-top: 1px;
+}
+
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVA PARA MÓVIL / CELULAR (ESTILO APP NATIVA IOS ULTRA-SLIM)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Permitir scroll natural en el eje vertical */
+    html, body {
+        position: relative;
+        overflow-x: hidden;
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    body {
+        display: block;
+    }
+
+    /* HEADER ULTRA-SLIM EN CELULAR (SIN SATURAR) */
+    .kds-header {
+        position: sticky;
+        top: 0;
+        height: 44px;
+        padding: 6px 12px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .kds-brand {
+        gap: 6px;
+    }
+
+    .kds-logo-img {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+    }
+
+    .kds-title-wrap h1 {
+        font-size: 0.88rem;
+        font-weight: 800;
+    }
+
+    .kds-badge {
+        display: none !important;
+    }
+
+    /* OCULTAR MÉTRICAS PESADAS Y RELOJ EN MÓVIL */
+    .kds-metrics {
+        display: none !important;
+    }
+
+    /* BOTONES DE CONTROL COMPACTOS */
+    .kds-controls {
+        gap: 6px;
+    }
+
+    .btn-ctrl-qr {
+        display: none !important; /* En celular se usa el botón flotante (FAB) */
+    }
+
+    .btn-portal {
+        display: none !important;
+    }
+
+    .btn-ctrl {
+        padding: 5px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        justify-content: center;
+    }
+
+    .btn-ctrl .btn-text {
+        display: none;
+    }
+
+    /* BARRA SEGMENTADA SLIM STICKY */
+    .kds-segmented-bar {
+        position: sticky;
+        top: 44px;
+        padding: 5px 10px;
+        z-index: 900;
+    }
+
+    .ios-segmented-control {
+        padding: 2px;
+    }
+
+    .seg-item {
+        padding: 5px 8px;
+        font-size: 0.72rem;
+        gap: 4px;
+    }
+
+    .seg-count {
+        min-width: 15px;
+        height: 15px;
+        font-size: 0.62rem;
+        padding: 0 4px;
+    }
+
+    /* MAIN BOARD VERTICAL */
+    .kds-main {
+        display: block;
+        padding: 10px 12px 90px;
+        overflow: visible;
+        height: auto;
+    }
+
+    .kds-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        height: auto;
+        width: 100%;
+    }
+
+    /* TICKET CARD EN CELULAR: ANCHO COMPLETO 100% */
+    .ticket-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        border-radius: 16px;
+    }
+
+    .ticket-body {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .btn-kds-action {
+        min-height: 44px;
+        font-size: 0.9rem;
+    }
+
+    /* BOTÓN FLOTANTE MÓVIL (FAB) */
+    .kds-mobile-fab-qr {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        position: fixed;
+        bottom: max(16px, env(safe-area-inset-bottom, 16px));
+        right: 14px;
+        z-index: 9999;
+        background: #0F172A;
+        color: #FFFFFF;
+        font-weight: 800;
+        font-size: 0.82rem;
+        padding: 11px 18px;
+        border-radius: 999px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+        border: none;
+        cursor: pointer;
+        transition: transform 0.2s var(--ios-ease-spring);
+    }
+
+    .kds-mobile-fab-qr:active {
+        transform: scale(0.94);
+    }
+
+    /* MODAL BOTTOM SHEET */
+    .kds-modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .kds-scanner-card {
+        border-radius: 22px 22px 0 0;
+        max-height: 90vh;
+        max-height: 90dvh;
+        overflow-y: auto;
+        animation: sheetSlideUp 0.3s var(--ios-ease-spring);
+        border-bottom: none;
+        padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    }
+
+    @keyframes sheetSlideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+
+    .sheet-handle {
+        display: block;
+        width: 36px;
+        height: 4px;
+        background: #CBD5E1;
+        border-radius: 999px;
+        margin: 8px auto 4px;
+    }
+
+    .kds-scanner-header {
+        padding: 10px 16px 12px;
+    }
+
+    .scanner-viewport-box {
+        height: 170px;
+    }
+
+    .kds-scanner-body {
+        padding: 12px 14px 18px;
+    }
 }

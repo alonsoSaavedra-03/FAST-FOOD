@@ -2,261 +2,288 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FastOrder | PWA Minimal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FastOrder • App Delivery & Dine-In</title>
     
-    <!-- PWA Meta Tags -->
+    <!-- PWA Meta Tags & Favicon -->
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/icons/favicon.png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
     <meta name="theme-color" content="#FFFFFF">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="FastOrder">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
     
-    <!-- Google Fonts Inter for ultra-clean minimalist typography -->
+    <!-- Google Fonts & Apple SF Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- CSS -->
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-    <!-- APP CONTAINER (MAX-WIDTH OPTIMIZED FOR MOBILE & DESKTOP) -->
+    <!-- APP CONTAINER (MÓVIL CON MÚLTIPLES VISTAS NATIVAS IOS) -->
     <div class="app-layout">
 
-        <!-- TOP BAR MINIMALISTA -->
-        <header class="top-bar">
-            <div class="brand">
-                <div class="brand-avatar">🍔</div>
-                <div class="brand-text">
-                    <h1>FastOrder</h1>
-                    <span class="brand-sub">PWA • FAST FOOD</span>
+        <!-- CABECERA SUPERIOR GLOBAL IOS GLASS -->
+        <header class="top-bar ios-glass">
+            <div class="ios-nav-content">
+                <div class="brand-location-cluster" style="display: flex; align-items: center; gap: 9px; min-width: 0;">
+                    <img src="/icons/logo.png" alt="FastOrder" class="brand-app-logo" style="width: 38px; height: 38px; border-radius: 11px; object-fit: cover; box-shadow: 0 3px 10px rgba(255, 68, 31, 0.28); flex-shrink: 0; cursor: pointer;" onclick="openWelcomeModal(true)" title="FastOrder - Cambiar comensal o mesa">
+                    <!-- Selector interactivo de mesa / comensal -->
+                    <div class="location-selector" id="locationSelectorBtn" onclick="openWelcomeModal(true)" title="Cambiar comensal o mesa de entrega">
+                        <div class="loc-pin-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5-2.5 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                        </div>
+                        <div class="loc-details">
+                            <span class="loc-label" id="customerGreetingLabel">HOLA, INVITADO</span>
+                            <div class="loc-name-row">
+                                <span class="loc-name" id="displayLocation">Mesa 4 • Salón Principal</span>
+                                <span class="loc-arrow">▾</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="top-actions">
-                <!-- Status Pill en cabecera -->
-                <button id="netStatusBtn" class="status-pill status-online" title="Haz clic para alternar simulación de conexión">
-                    <span class="status-dot" id="netStatusDot"></span>
-                    <span id="netStatusText">En línea</span>
-                </button>
-                <a href="/portal.html" class="btn-icon-link" title="Ir al Portal del Sistema" aria-label="Portal">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
-                </a>
+
+                <div class="top-actions">
+                    <!-- Status Pill de Conectividad con punto luminoso -->
+                    <button id="netStatusBtn" class="status-pill status-online" title="Ver estado de red y ajustes de cuenta" onclick="switchTab('account')">
+                        <span class="status-dot" id="netStatusDot"></span>
+                        <span id="netStatusText">En línea</span>
+                    </button>
+                    <a href="/portal.html" class="btn-icon-link" title="Ir al Portal del Sistema" aria-label="Portal">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </header>
 
-        <!-- AVISO VISUAL DE CONEXIÓN (ONLINE Y OFFLINE) -->
-        <div id="connectionNotice" class="connection-notice notice-online" role="alert">
-            <div class="notice-icon-wrap" id="noticeIconWrap">
-                <span class="notice-pulse-dot" id="noticePulseDot"></span>
-            </div>
-            <div class="notice-body">
-                <div class="notice-header-row">
-                    <h4 class="notice-title" id="noticeTitle">Conexión Activa</h4>
-                    <span class="notice-badge" id="noticeBadge">En línea</span>
-                </div>
-                <p class="notice-desc" id="noticeDesc">
-                    Estás conectado en tiempo real. Tus órdenes se despachan directamente a las pantallas de cocina.
-                </p>
-            </div>
-            <button id="btnToggleSimulateNet" class="notice-action-btn" title="Simular pérdida de señal de internet">
-                Simular Offline
-            </button>
-        </div>
-
-        <!-- A2HS INSTALL BANNER MINIMALISTA -->
+        <!-- A2HS BANNER IOS INSTALL -->
         <div id="installBanner" class="install-banner">
+            <div class="install-icon" style="display: flex; align-items: center;">
+                <img src="/icons/logo.png" alt="FastOrder" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.3); flex-shrink: 0;">
+            </div>
             <div class="install-info">
                 <h4>Instalar FastOrder App</h4>
-                <p>Acceso rápido a pantalla completa sin gastar datos</p>
+                <p>Navega a pantalla completa sin gastar datos</p>
             </div>
             <div class="install-actions">
-                <button id="btnInstallPwa" class="btn-install">Instalar</button>
-                <button id="btnDismissInstall" class="btn-dismiss-install">✕</button>
-            </div>
-        </div>
-
-        <!-- HERO / HEADER MINIMALISTA -->
-        <section class="minimal-hero">
-            <div class="hero-chip">PEDIDOS EN MESA & LLEVAR</div>
-            <h2>Menú Digital & Cocina en Vivo</h2>
-            <p>Pide sin esperar turnos. Funciona con o sin conexión a internet.</p>
-        </section>
-
-        <!-- SEGUIMIENTO DE PEDIDO ACTIVO (SI EXISTE) -->
-        <section id="trackingSection" style="display: none;">
-            <div class="tracker-card">
-                <div class="tracker-header">
-                    <div>
-                        <span class="tracker-eyebrow">ESTADO DE TU PEDIDO</span>
-                        <div id="trackTicketNum" class="tracker-ticket">Ticket #--</div>
-                    </div>
-                    <div id="trackStatusBadge" class="tracker-badge">
-                        Enviado a Cocina
-                    </div>
-                </div>
-                
-                <div class="steps-bar">
-                    <div class="step-node" id="stepNode1">
-                        <div class="step-circle">1</div>
-                        <span class="step-label">Recibido</span>
-                    </div>
-                    <div class="step-line"></div>
-                    <div class="step-node" id="stepNode2">
-                        <div class="step-circle">2</div>
-                        <span class="step-label">Cocción</span>
-                    </div>
-                    <div class="step-line"></div>
-                    <div class="step-node" id="stepNode3">
-                        <div class="step-circle">3</div>
-                        <span class="step-label">¡Listo!</span>
-                    </div>
-                    <div class="step-line"></div>
-                    <div class="step-node" id="stepNode4">
-                        <div class="step-circle">4</div>
-                        <span class="step-label">Entregado</span>
-                    </div>
-                </div>
-                <div class="tracker-eta" id="trackEtaText">
-                    Tiempo estimado de preparación: 10 - 12 min
-                </div>
-            </div>
-        </section>
-
-        <!-- CATEGORY TABS MINIMALISTAS -->
-        <nav class="categories-container" id="categoryTabs" aria-label="Categorías de platillos">
-            <button class="cat-pill active" data-cat="ALL">Todo</button>
-            <button class="cat-pill" data-cat="COMBOS">Combos</button>
-            <button class="cat-pill" data-cat="BURGERS">Hamburguesas</button>
-            <button class="cat-pill" data-cat="SIDES">Sides</button>
-            <button class="cat-pill" data-cat="DRINKS">Bebidas</button>
-            <button class="cat-pill" data-cat="DESSERTS">Postres</button>
-        </nav>
-
-        <!-- CATÁLOGO DE PRODUCTOS -->
-        <main class="products-section">
-            <div class="section-header">
-                <div>
-                    <h3 id="currentCategoryTitle">Todo el Menú</h3>
-                    <span id="productCountLabel" class="section-sub">Cargando catálogo...</span>
-                </div>
-            </div>
-
-            <!-- Products Grid -->
-            <div class="products-grid" id="productsGrid">
-                <!-- Skeleton loader inicial -->
-                <div class="skeleton-card skeleton-anim">
-                    <div class="skeleton-thumb"></div>
-                    <div class="skeleton-line" style="width: 70%;"></div>
-                    <div class="skeleton-line" style="width: 45%;"></div>
-                </div>
-                <div class="skeleton-card skeleton-anim">
-                    <div class="skeleton-thumb"></div>
-                    <div class="skeleton-line" style="width: 70%;"></div>
-                    <div class="skeleton-line" style="width: 45%;"></div>
-                </div>
-                <div class="skeleton-card skeleton-anim">
-                    <div class="skeleton-thumb"></div>
-                    <div class="skeleton-line" style="width: 70%;"></div>
-                    <div class="skeleton-line" style="width: 45%;"></div>
-                </div>
-                <div class="skeleton-card skeleton-anim">
-                    <div class="skeleton-thumb"></div>
-                    <div class="skeleton-line" style="width: 70%;"></div>
-                    <div class="skeleton-line" style="width: 45%;"></div>
-                </div>
-            </div>
-        </main>
-
-        <!-- THUMB ZONE BARRA INFERIOR FLOTANTE -->
-        <div class="thumb-wrapper">
-            <footer class="thumb-bar" id="thumbBar">
-                <div class="cart-summary">
-                    <span class="cart-label">TOTAL DEL PEDIDO</span>
-                    <span class="cart-total" id="thumbTotal">S/ 0.00</span>
-                </div>
-                <button class="btn-open-cart" id="btnOpenCart">
-                    <span class="cart-badge" id="thumbBadge">0</span>
-                    <span>Ver Pedido</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
+                <button id="btnInstallPwa" class="btn-install">Obtener</button>
+                <button id="btnDismissInstall" class="btn-dismiss-install" aria-label="Cerrar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
-            </footer>
+            </div>
         </div>
 
-    </div> <!-- FIN APP LAYOUT -->
+        <!-- =======================================================
+             VISTAS DE PANTALLA INDEPENDIENTES (TABS IOS)
+             ======================================================= -->
 
-    <!-- MODAL CUSTOMIZATION (BOTTOM SHEET) -->
-    <div class="modal-overlay" id="customModalOverlay">
-        <div class="bottom-sheet">
-            <div class="sheet-handle"></div>
-            <div class="sheet-header">
-                <div>
-                    <h3 id="modalProdTitle">Personalizar Platillo</h3>
-                    <span id="modalProdPrice" class="modal-header-price">S/ 0.00</span>
+        <!-- VISTA 1: MENÚ / EXPLORAR (HOME) -->
+        <section id="view-home" class="tab-view active">
+            <!-- Carrusel de Promociones / Historias (Estilo Rappi & iOS - Fotografía Real) -->
+            <div class="promos-carousel-container">
+                <div class="promos-carousel">
+                    <!-- Banner 1: Combo Doble Clásica (20% OFF) -->
+                    <div class="promo-card promo-hero-rappi" onclick="openCustomModal('p-01')" role="button" aria-label="Ver promoción Combo Doble Clásica">
+                        <div class="promo-bg-img-wrap">
+                            <img src="/images/products/combo_doble.jpg" alt="Combo Doble Clásica" class="promo-bg-img">
+                            <div class="promo-gradient-overlay promo-grad-orange"></div>
+                        </div>
+                        <div class="promo-card-content">
+                            <div class="promo-pill promo-pill-discount">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                <span>20% OFF</span>
+                            </div>
+                            <div class="promo-text-wrap">
+                                <h3 class="promo-hero-title">Combo Doble Clásica</h3>
+                                <p class="promo-hero-desc">Papas rústicas + Bebida helada</p>
+                            </div>
+                            <div class="promo-bottom-row">
+                                <div class="promo-price-group">
+                                    <span class="promo-price-now">S/ 28.50</span>
+                                    <span class="promo-price-was">S/ 35.50</span>
+                                </div>
+                                <div class="promo-cta-capsule">
+                                    <span>Pedir</span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Banner 2: Monster Bacon Burger (FAVORITO) -->
+                    <div class="promo-card promo-hero-speed" onclick="openCustomModal('p-02')" role="button" aria-label="Ver Monster Bacon Burger">
+                        <div class="promo-bg-img-wrap">
+                            <img src="/images/products/monster_bacon.jpg" alt="Monster Bacon Burger" class="promo-bg-img">
+                            <div class="promo-gradient-overlay promo-grad-dark"></div>
+                        </div>
+                        <div class="promo-card-content">
+                            <div class="promo-pill promo-pill-fav">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                <span>FAVORITO</span>
+                            </div>
+                            <div class="promo-text-wrap">
+                                <h3 class="promo-hero-title">Monster Bacon Burger</h3>
+                                <p class="promo-hero-desc">Triple carne a la parrilla</p>
+                            </div>
+                            <div class="promo-bottom-row">
+                                <div class="promo-price-group">
+                                    <span class="promo-price-now">S/ 24.00</span>
+                                </div>
+                                <div class="promo-cta-capsule">
+                                    <span>Pedir</span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Banner 3: Offline First (Resiliencia) -->
+                    <div class="promo-card promo-hero-offline" onclick="toggleConnectivitySimulation()" role="button" aria-label="Simular conectividad offline">
+                        <div class="promo-bg-img-wrap">
+                            <div class="promo-tech-mesh">
+                                <svg width="130" height="130" viewBox="0 0 100 100" fill="none" class="promo-tech-svg">
+                                    <circle cx="50" cy="50" r="42" stroke="rgba(56, 189, 248, 0.22)" stroke-width="2" stroke-dasharray="4 4" />
+                                    <circle cx="50" cy="50" r="28" fill="rgba(56, 189, 248, 0.1)" />
+                                    <path d="M35 48a12 12 0 0 1 21-8 9 9 0 0 1 12 8h-3a6.5 6.5 0 0 0-6.5-6.5c-2.4 0-4.5 1.2-5.5 3.1A8.5 8.5 0 0 0 38 48h-3z" fill="#38BDF8"/>
+                                    <path d="M43 54l7-7 7 7M50 47v15" stroke="#38BDF8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <div class="promo-gradient-overlay promo-grad-blue"></div>
+                            </div>
+                        </div>
+                        <div class="promo-card-content">
+                            <div class="promo-pill promo-pill-offline">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                                <span>OFFLINE FIRST</span>
+                            </div>
+                            <div class="promo-text-wrap">
+                                <h3 class="promo-hero-title">Pide sin Internet</h3>
+                                <p class="promo-hero-desc">Sincronización automática</p>
+                            </div>
+                            <div class="promo-bottom-row">
+                                <div class="promo-price-group">
+                                    <span class="promo-tech-pill">IndexedDB Sync</span>
+                                </div>
+                                <div class="promo-cta-capsule promo-cta-tech">
+                                    <span>Simular</span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button class="btn-close-sheet" id="btnCloseCustomModal" aria-label="Cerrar">✕</button>
             </div>
 
-            <p id="modalProdDesc" class="modal-description"></p>
+            <!-- Categorías con desplazamiento suave (Sin emojis) -->
+            <nav class="categories-container" id="categoryTabs" aria-label="Categorías de platillos">
+                <button class="cat-pill active" data-cat="ALL">Todo</button>
+                <button class="cat-pill" data-cat="COMBOS">Combos</button>
+                <button class="cat-pill" data-cat="BURGERS">Hamburguesas</button>
+                <button class="cat-pill" data-cat="SIDES">Acompañamientos</button>
+                <button class="cat-pill" data-cat="DRINKS">Bebidas</button>
+                <button class="cat-pill" data-cat="DESSERTS">Postres</button>
+            </nav>
 
-            <div class="opt-group">
-                <div class="opt-group-title">
-                    <span>AGREGADOS & EXTRAS</span>
-                    <span class="opt-hint">Opcional</span>
+            <!-- Sección del Catálogo -->
+            <main class="products-section">
+                <div class="section-header">
+                    <div>
+                        <h3 id="currentCategoryTitle">Todo el Menú</h3>
+                        <span id="productCountLabel" class="section-sub">Cargando delicias...</span>
+                    </div>
                 </div>
-                <div id="modalAddonsList" class="options-list"></div>
-            </div>
 
-            <div class="opt-group">
-                <div class="opt-group-title">
-                    <span>PREFERENCIAS DE COCINA</span>
-                    <span class="opt-hint">Sin costo</span>
+                <!-- Cuadrícula de platillos -->
+                <div class="products-grid" id="productsGrid">
+                    <!-- Skeleton Loader -->
+                    <div class="skeleton-card skeleton-anim">
+                        <div class="skeleton-thumb"></div>
+                        <div class="skeleton-line" style="width: 70%;"></div>
+                        <div class="skeleton-line" style="width: 45%;"></div>
+                    </div>
+                    <div class="skeleton-card skeleton-anim">
+                        <div class="skeleton-thumb"></div>
+                        <div class="skeleton-line" style="width: 70%;"></div>
+                        <div class="skeleton-line" style="width: 45%;"></div>
+                    </div>
                 </div>
-                <div id="modalRemovalsList" class="options-list"></div>
+            </main>
+        </section>
+
+        <!-- VISTA 2: BÚSQUEDA DEDICADA (SPOTLIGHT SEARCH) -->
+        <section id="view-search" class="tab-view">
+            <div class="view-header">
+                <h2>Buscar Platillos</h2>
+                <p>Encuentra tus favoritos por nombre, ingrediente o combo</p>
             </div>
 
-            <div class="opt-group">
-                <label class="input-label" for="modalKitchenNotes">
-                    INSTRUCCIÓN ESPECIAL:
-                </label>
-                <input type="text" id="modalKitchenNotes" class="minimal-input" placeholder="Ej. Bien cocida, salsas aparte, etc.">
-            </div>
-
-            <button class="btn-checkout" id="btnAddCustomToCart">
-                <span>Agregar al Carrito</span>
-                <span class="btn-sep">•</span>
-                <span id="modalAddTotalBtn">S/ 0.00</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- MODAL CARRITO (BOTTOM SHEET) -->
-    <div class="modal-overlay" id="cartModalOverlay">
-        <div class="bottom-sheet">
-            <div class="sheet-handle"></div>
-            <div class="sheet-header">
-                <div>
-                    <h3>Tu Pedido</h3>
-                    <span class="sheet-subtitle">Revisa tus productos antes de confirmar</span>
+            <!-- Buscador iOS Spotlight -->
+            <div class="search-input-wrap">
+                <div class="ios-search-box">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Escribe 'bacon', 'papas', 'queso'..." autocomplete="off">
+                    <button id="searchClearBtn" class="search-clear-btn" aria-label="Limpiar">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
                 </div>
-                <button class="btn-close-sheet" id="btnCloseCartModal" aria-label="Cerrar">✕</button>
             </div>
 
-            <div id="cartItemsContainer" class="cart-items-list">
+            <!-- Tags de búsqueda rápida recomendados (Sin emojis) -->
+            <div class="quick-tags-section">
+                <span class="quick-tags-label">BÚSQUEDAS POPULARES:</span>
+                <div class="quick-tags-list">
+                    <button class="quick-tag" onclick="setQuickSearch('Burger')">Hamburguesas</button>
+                    <button class="quick-tag" onclick="setQuickSearch('Combo')">Combos</button>
+                    <button class="quick-tag" onclick="setQuickSearch('Papas')">Papas</button>
+                    <button class="quick-tag" onclick="setQuickSearch('Inka Cola')">Bebidas</button>
+                    <button class="quick-tag" onclick="setQuickSearch('Helado')">Postres</button>
+                </div>
+            </div>
+
+            <!-- Resultados de la búsqueda -->
+            <div class="search-results-section">
+                <div class="section-header">
+                    <div>
+                        <h3 id="searchResultsTitle">Explorar sugerencias</h3>
+                        <span id="searchResultsCount" class="section-sub">Escribe para filtrar</span>
+                    </div>
+                </div>
+                <div class="products-grid" id="searchProductsGrid">
+                    <!-- Se llena con app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 3: MI CANASTA / CHECKOUT DEDICADA -->
+        <section id="view-cart" class="tab-view">
+            <div class="view-header">
+                <div class="view-title-row">
+                    <h2>Tu Canasta</h2>
+                    <span class="cart-items-count-badge" id="cartHeaderBadge">0 ítems</span>
+                </div>
+                <p>Revisa tus platillos seleccionados antes de enviar a cocina</p>
+            </div>
+
+            <!-- Lista de ítems en el carrito -->
+            <div id="cartItemsContainer" class="cart-items-list-view">
                 <!-- Se llena con app.js -->
             </div>
 
-            <div class="cart-totals">
+            <!-- Desglose de totales y mesa -->
+            <div class="cart-checkout-card">
                 <div class="totals-row">
                     <span>Subtotal</span>
                     <span id="cartSubtotalText">S/ 0.00</span>
@@ -269,32 +296,569 @@
                     <span>Total a Pagar</span>
                     <span id="cartTotalText">S/ 0.00</span>
                 </div>
+
+                <div class="cart-input-box" style="margin-top: 14px;">
+                    <label class="input-label" for="customerNameInput">
+                        NOMBRE DEL CLIENTE O N° DE MESA:
+                    </label>
+                    <input type="text" id="customerNameInput" class="minimal-input" placeholder="Ej. Carlos M. / Mesa 4" value="Cliente • Mesa 4">
+                </div>
+
+                <!-- Botón de Confirmación con estado dinámico (Online / Offline) -->
+                <button class="btn-checkout" id="btnConfirmCheckout">
+                    <span id="checkoutBtnIcon" class="checkout-icon-wrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </span>
+                    <span id="checkoutBtnText">Confirmar Pedido (En línea)</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- VISTA 4: SEGUIMIENTO EN VIVO & KDS (MIS PEDIDOS) -->
+        <section id="view-orders" class="tab-view">
+            <div class="view-header">
+                <h2>Estado en Tiempo Real</h2>
+                <p>Monitor de preparación sincronizado con las pantallas de cocina</p>
             </div>
 
-            <div class="cart-input-box">
-                <label class="input-label" for="customerNameInput">
-                    NOMBRE DEL CLIENTE O N° DE MESA:
+            <!-- Live Activity Card (iOS 17/18 Style) -->
+            <div id="trackingSection" class="tracking-container">
+                <div class="live-activity-card">
+                    <div class="activity-top">
+                        <div class="activity-brand">
+                            <div class="activity-pulse-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="activity-sub">PEDIDO EN CURSO • EN VIVO</span>
+                                <div id="trackTicketNum" class="activity-ticket">Ticket #--</div>
+                            </div>
+                        </div>
+                        <div id="trackStatusBadge" class="activity-status-badge">
+                            Sin pedidos activos
+                        </div>
+                    </div>
+                    
+                    <div class="steps-bar">
+                        <div class="step-node" id="stepNode1">
+                            <div class="step-circle">1</div>
+                            <span class="step-label">Recibido</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step-node" id="stepNode2">
+                            <div class="step-circle">2</div>
+                            <span class="step-label">Cocción</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step-node" id="stepNode3">
+                            <div class="step-circle">3</div>
+                            <span class="step-label">Listo</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step-node" id="stepNode4">
+                            <div class="step-circle">4</div>
+                            <span class="step-label">Entregado</span>
+                        </div>
+                    </div>
+                    <div class="tracker-eta" id="trackEtaText">
+                        Haz un pedido desde el menú para seguir su cocción aquí.
+                    </div>
+
+                    <!-- CÓDIGO QR DE VALIDACIÓN DE ENTREGA (ESTILO APPLE WALLET) -->
+                    <div id="orderQrValidationCard" class="order-qr-card" style="display: none;">
+                        <div class="qr-card-header">
+                            <div class="qr-pill-badge" id="qrCardPillBadge">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </svg>
+                                <span id="qrBadgeText">QR DE VALIDACIÓN</span>
+                            </div>
+                            <span class="qr-ticket-tag" id="qrTicketTag">Ticket #104</span>
+                        </div>
+
+                        <!-- Contenedor del Código QR generado dinámicamente -->
+                        <div class="qr-viewfinder-frame">
+                            <div class="qr-corner-bracket top-left"></div>
+                            <div class="qr-corner-bracket top-right"></div>
+                            <div class="qr-corner-bracket bottom-left"></div>
+                            <div class="qr-corner-bracket bottom-right"></div>
+                            <div class="qr-laser-line" id="qrLaserLine"></div>
+                            
+                            <div id="orderQrContainer" class="order-qr-code-box" onclick="expandQrModal()" title="Toca para ver en grande">
+                                <!-- Aquí se inyecta el SVG del código QR -->
+                            </div>
+
+                            <div id="orderQrDeliveredStamp" class="qr-delivered-stamp" style="display: none;">
+                                <div class="stamp-circle">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                                <span class="stamp-title">PEDIDO ENTREGADO</span>
+                                <span class="stamp-sub">Verificado por Escáner QR</span>
+                            </div>
+                        </div>
+
+                        <!-- CÓDIGO SECRETO / PIN DE RESPALDO (SI EL QR NO PUEDE ESCANEARSE) -->
+                        <div class="qr-pin-box">
+                            <div class="qr-pin-top">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                                <span>PIN SECRETO DE RESPALDO</span>
+                            </div>
+                            <div class="qr-pin-digits" id="trackOrderPinDisplay">
+                                <span class="pin-digit" id="pinDigit1">8</span>
+                                <span class="pin-digit" id="pinDigit2">4</span>
+                                <span class="pin-digit" id="pinDigit3">9</span>
+                                <span class="pin-digit" id="pinDigit4">2</span>
+                            </div>
+                            <span class="qr-pin-hint">Si el escáner falla, dicta este código de 4 dígitos al personal</span>
+                        </div>
+
+                        <div class="qr-card-info">
+                            <h4 id="qrInstructionTitle">Presenta este código al personal</h4>
+                            <p id="qrInstructionDesc">El personal o mozo escaneará este código QR para verificar tu comanda y entregarte tu pedido.</p>
+                        </div>
+
+                        <div class="qr-card-footer">
+                            <button type="button" class="btn-qr-action" onclick="expandQrModal()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <polyline points="9 21 3 21 3 15"></polyline>
+                                    <line x1="21" y1="3" x2="14" y2="10"></line>
+                                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                                </svg>
+                                <span>Ver QR en Pantalla Completa</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- DESGLOSE DEL PEDIDO EN SEGUIMIENTO -->
+                    <div id="trackOrderSummaryBox" class="track-order-summary" style="display: none; margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 14px;">
+                        <h4 style="font-size: 0.85rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Detalle de tu Comanda:</h4>
+                        <div id="trackOrderItemsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta explicativa de resiliencia Offline -->
+            <div class="order-features-box">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                            <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                        </svg>
+                    </div>
+                    <div class="feature-text">
+                        <strong>WebSockets Bidireccionales</strong>
+                        <p>Los cambios de estado en cocina se reflejan aquí en milisegundos sin recargar.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                    </div>
+                    <div class="feature-text">
+                        <strong>IndexedDB & Background Sync</strong>
+                        <p>Si pierdes la señal, el pedido queda en cola local y se sincroniza al reconectar.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 5: MI CUENTA & AJUSTES DE CONEXIÓN -->
+        <section id="view-account" class="tab-view">
+            <div class="view-header">
+                <h2>Mi Cuenta</h2>
+                <p>Gestiona tu perfil, ubicación de mesa y estado de conexión en tiempo real</p>
+            </div>
+
+            <!-- Perfil del Comensal -->
+            <div class="account-profile-card">
+                <div class="account-profile-left">
+                    <div class="account-avatar" id="accountAvatarWrap">
+                        <span id="accountAvatarInitial">F</span>
+                    </div>
+                    <div class="account-profile-details">
+                        <h3 id="accountCustomerName">Invitado FastOrder</h3>
+                        <span id="accountCustomerTable" class="account-table-pill">Mesa 4 • Salón FastOrder</span>
+                    </div>
+                </div>
+                <button class="btn-account-edit" onclick="openWelcomeModal(true)" title="Cambiar comensal o mesa">
+                    <span>Cambiar</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Título de sección de Red -->
+            <div class="account-section-title">
+                <span>ESTADO DE CONECTIVIDAD CON COCINA</span>
+            </div>
+
+            <!-- AVISO VISUAL DE CONEXIÓN FLUIDO (CENTRALIZADO EN CUENTA) -->
+            <div id="connectionNotice" class="connection-notice notice-online" role="alert" style="margin: 0 16px 18px;">
+                <div class="notice-icon-wrap" id="noticeIconWrap">
+                    <span class="notice-pulse-dot" id="noticePulseDot"></span>
+                </div>
+                <div class="notice-body">
+                    <div class="notice-header-row">
+                        <h4 class="notice-title" id="noticeTitle">Conexión Activa</h4>
+                        <span class="notice-badge" id="noticeBadge">En línea</span>
+                    </div>
+                    <p class="notice-desc" id="noticeDesc">
+                        Estás conectado en tiempo real. Las órdenes se envían de inmediato al monitor de cocina.
+                    </p>
+                </div>
+                <button id="btnToggleSimulateNet" class="notice-action-btn" title="Simular pérdida de señal de internet">
+                    Simular Offline
+                </button>
+            </div>
+
+            <!-- Accesos Rápidos del Ecosistema -->
+            <div class="account-section-title">
+                <span>ACCESOS DEL SISTEMA</span>
+            </div>
+
+            <div class="account-menu-card">
+                <a href="/cocina.html" class="account-menu-row">
+                    <div class="account-menu-icon" style="background: #FEF3C7; color: #D97706;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/>
+                            <line x1="6" y1="17" x2="18" y2="17"/>
+                        </svg>
+                    </div>
+                    <div class="account-menu-text">
+                        <strong>Monitor de Cocina KDS</strong>
+                        <span>Pantalla en tiempo real de cocción y comandas</span>
+                    </div>
+                    <span class="menu-arrow">›</span>
+                </a>
+
+                <div class="menu-divider"></div>
+
+                <a href="/portal.html" class="account-menu-row">
+                    <div class="account-menu-icon" style="background: #EFF6FF; color: #2563EB;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
+                    <div class="account-menu-text">
+                        <strong>Portal del Sistema</strong>
+                        <span>Documentación técnica y selector de pantallas</span>
+                    </div>
+                    <span class="menu-arrow">›</span>
+                </a>
+
+                <div class="menu-divider"></div>
+
+                <div class="account-menu-row" onclick="openWelcomeModal(true)" style="cursor: pointer;">
+                    <div class="account-menu-icon" style="background: #FFF0EB; color: var(--rappi-orange);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="account-menu-text">
+                        <strong>Modificar Datos de Comensal</strong>
+                        <span>Cambiar tu nombre o mesa de entrega</span>
+                    </div>
+                    <span class="menu-arrow">›</span>
+                </div>
+
+                <div class="menu-divider"></div>
+
+                <div class="account-menu-row" onclick="resetAppAndCache()" style="cursor: pointer;">
+                    <div class="account-menu-icon" style="background: #FEF2F2; color: #EF4444;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <polyline points="23 20 23 14 17 14"></polyline>
+                            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                        </svg>
+                    </div>
+                    <div class="account-menu-text">
+                        <strong>Restablecer Caché y Datos</strong>
+                        <span>Limpiar pedidos locales, service worker y reiniciar</span>
+                    </div>
+                    <span class="menu-arrow">›</span>
+                </div>
+            </div>
+
+            <!-- Badges Técnicos -->
+            <div class="account-pwa-info">
+                <div class="pwa-tag-pill">PWA Offline-First v8</div>
+                <div class="pwa-tag-pill">IndexedDB Sync</div>
+                <div class="pwa-tag-pill">WebSockets KDS</div>
+            </div>
+        </section>
+
+        <!-- =======================================================
+             BARRA DE NAVEGACIÓN INFERIOR NATIVA IOS (TAB BAR DOCK)
+             ======================================================= -->
+        <nav class="ios-tab-bar" aria-label="Navegación principal">
+            <!-- Tab 1: Menú -->
+            <button class="tab-item active" data-tab="home" onclick="switchTab('home')">
+                <div class="tab-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </div>
+                <span class="tab-label">Menú</span>
+            </button>
+
+            <!-- Tab 2: Buscar -->
+            <button class="tab-item" data-tab="search" onclick="switchTab('search')">
+                <div class="tab-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+                <span class="tab-label">Buscar</span>
+            </button>
+
+            <!-- Tab 3: Canasta -->
+            <button class="tab-item" data-tab="cart" onclick="switchTab('cart')">
+                <div class="tab-icon tab-cart-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                    <span class="tab-badge" id="tabCartBadge">0</span>
+                </div>
+                <span class="tab-label">Canasta</span>
+            </button>
+
+            <!-- Tab 4: Pedidos / Estado -->
+            <button class="tab-item" data-tab="orders" onclick="switchTab('orders')">
+                <div class="tab-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="tab-pulse-dot" id="tabOrderPulse" style="display: none;"></span>
+                </div>
+                <span class="tab-label">Estado</span>
+            </button>
+
+            <!-- Tab 5: Cuenta / Perfil & Conectividad -->
+            <button class="tab-item" data-tab="account" onclick="switchTab('account')">
+                <div class="tab-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <span class="tab-label">Cuenta</span>
+            </button>
+        </nav>
+
+        <!-- FLOATING CART SNACKBAR (MINI PÍLDORA CUANDO HAY PRODUCTOS EN MENÚ) -->
+        <div class="floating-cart-pill" id="floatingCartPill" onclick="switchTab('cart')">
+            <div class="pill-info">
+                <span class="pill-badge" id="floatingCartBadge">0</span>
+                <span class="pill-title">Ver mi canasta</span>
+            </div>
+            <div class="pill-total">
+                <span id="floatingCartTotal">S/ 0.00</span>
+                <span class="pill-arrow">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </span>
+            </div>
+        </div>
+
+    </div> <!-- FIN APP LAYOUT -->
+
+    <!-- MODAL CUSTOMIZATION (IOS BOTTOM SHEET TRANSLÚCIDO) -->
+    <div class="modal-overlay" id="customModalOverlay">
+        <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div class="modal-hero-wrap" id="modalHeroWrap" style="display: none;">
+                <img id="modalHeroImg" src="" alt="Platillo" class="modal-hero-img">
+            </div>
+            <div class="sheet-header">
+                <div>
+                    <h3 id="modalProdTitle">Personalizar Platillo</h3>
+                    <span id="modalProdPrice" class="modal-header-price">S/ 0.00</span>
+                </div>
+                <button class="btn-close-sheet" id="btnCloseCustomModal" aria-label="Cerrar modal">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+
+            <p id="modalProdDesc" class="modal-description"></p>
+
+            <!-- SECCIONES DINÁMICAS (BEBIDAS, PAPAS, CREMAS, TÉRMINO, EXTRAS) -->
+            <div id="modalCustomSectionsContainer" class="custom-sections-container"></div>
+
+            <div class="opt-group" style="margin-top: 14px;">
+                <label class="input-label" for="modalKitchenNotes">
+                    INSTRUCCIÓN ESPECIAL PARA EL COCINERO:
                 </label>
-                <input type="text" id="customerNameInput" class="minimal-input" placeholder="Ej. Carlos M. / Mesa 4" value="Cliente FastOrder">
+                <input type="text" id="modalKitchenNotes" class="minimal-input" placeholder="Ej. Bien dorada, salsas en pote aparte...">
             </div>
 
-            <!-- Botón de checkout con estado dinámico (Online / Offline) -->
-            <button class="btn-checkout" id="btnConfirmCheckout">
-                <span id="checkoutBtnIcon">🚀</span>
-                <span id="checkoutBtnText">Confirmar Pedido (En línea)</span>
+            <button class="btn-checkout" id="btnAddCustomToCart">
+                <span>Agregar al Carrito</span>
+                <span class="btn-sep">•</span>
+                <span id="modalAddTotalBtn">S/ 0.00</span>
             </button>
         </div>
     </div>
 
-    <!-- TOAST NOTIFICATION FLOTANTE -->
+    <!-- PANTALLA DE BIENVENIDA & SELECCIÓN DE MESA (ONBOARDING IOS) -->
+    <div id="welcomeOnboardingOverlay" class="welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+        <div class="welcome-card" style="position: relative;">
+            <button id="btnCloseWelcomeModal" type="button" class="btn-close-sheet" onclick="closeWelcomeModal()" style="display: none; position: absolute; top: 18px; right: 18px;" aria-label="Cerrar modal">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <!-- Icono y saludo de bienvenida -->
+            <div class="welcome-header">
+                <div class="welcome-badge-icon" style="background: transparent; box-shadow: none; width: 84px; height: 84px; margin: 0 auto 12px; padding: 0;">
+                    <img src="/icons/logo.png" alt="FastOrder Logo" style="width: 100%; height: 100%; border-radius: 24px; object-fit: cover; box-shadow: 0 14px 32px rgba(255, 68, 31, 0.32);">
+                </div>
+                <h2 id="welcomeTitle">¡Bienvenido a FastOrder!</h2>
+                <p class="welcome-subtitle">
+                    Pide desde tu mesa sin hacer filas. Tu orden llegará directamente al monitor de cocina en tiempo real.
+                </p>
+            </div>
+
+            <!-- Formulario de ingreso -->
+            <form id="welcomeForm" onsubmit="event.preventDefault(); submitWelcomeForm();" class="welcome-form">
+                <!-- Nombre del cliente -->
+                <div class="welcome-field">
+                    <label for="welcomeCustomerName" class="welcome-label">
+                        ¿CÓMO TE LLAMAS?
+                    </label>
+                    <div class="welcome-input-wrap">
+                        <span class="welcome-field-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </span>
+                        <input type="text" id="welcomeCustomerName" class="welcome-input" placeholder="Escribe tu nombre o apodo..." autocomplete="name" required maxlength="32">
+                    </div>
+                </div>
+
+                <!-- Selección de Mesa -->
+                <div class="welcome-field">
+                    <div class="welcome-label-row">
+                        <label class="welcome-label">¿EN QUÉ MESA TE ENCUENTRAS?</label>
+                        <span class="welcome-tag-hint" id="selectedTableHint">Mesa 4 seleccionada</span>
+                    </div>
+
+                    <!-- Cuadrícula de mesas interactivas -->
+                    <div class="tables-grid" id="welcomeTablesGrid">
+                        <button type="button" class="table-chip" data-table="Mesa 1" onclick="selectWelcomeTable('Mesa 1')">Mesa 1</button>
+                        <button type="button" class="table-chip" data-table="Mesa 2" onclick="selectWelcomeTable('Mesa 2')">Mesa 2</button>
+                        <button type="button" class="table-chip" data-table="Mesa 3" onclick="selectWelcomeTable('Mesa 3')">Mesa 3</button>
+                        <button type="button" class="table-chip active" data-table="Mesa 4" onclick="selectWelcomeTable('Mesa 4')">Mesa 4</button>
+                        <button type="button" class="table-chip" data-table="Mesa 5" onclick="selectWelcomeTable('Mesa 5')">Mesa 5</button>
+                        <button type="button" class="table-chip" data-table="Mesa 6" onclick="selectWelcomeTable('Mesa 6')">Mesa 6</button>
+                        <button type="button" class="table-chip" data-table="Mesa 7" onclick="selectWelcomeTable('Mesa 7')">Mesa 7</button>
+                        <button type="button" class="table-chip" data-table="Mesa 8" onclick="selectWelcomeTable('Mesa 8')">Mesa 8</button>
+                        <button type="button" class="table-chip" data-table="Barra" onclick="selectWelcomeTable('Barra')">Barra</button>
+                        <button type="button" class="table-chip" data-table="Para Llevar" onclick="selectWelcomeTable('Para Llevar')">Llevar</button>
+                    </div>
+                </div>
+
+                <!-- Resumen de beneficios -->
+                <div class="welcome-features">
+                    <div class="welcome-feat-item">
+                        <div class="feat-bullet">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <span>Comandas directas a cocina vía WebSockets</span>
+                    </div>
+                    <div class="welcome-feat-item">
+                        <div class="feat-bullet">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <span>Personaliza bebidas, papas y cremas a tu gusto</span>
+                    </div>
+                </div>
+
+                <!-- Botón para ingresar a la app -->
+                <button type="submit" class="btn-welcome-submit" id="btnWelcomeSubmit">
+                    <span>Ver Menú y Comenzar Pedido</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL QR AMPLIADO A PANTALLA COMPLETA (ESTILO APPLE WALLET PASS) -->
+    <div id="qrExpandedModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="qrExpandedTitle">
+        <div class="bottom-sheet qr-expanded-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <div>
+                    <h3 id="qrExpandedTitle">Código QR de Entrega</h3>
+                    <span id="qrExpandedSub" class="sheet-subtitle">Presenta este código al personal o mozo</span>
+                </div>
+                <button class="btn-close-sheet" onclick="closeQrModal()" aria-label="Cerrar modal QR">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="qr-expanded-body">
+                <div id="qrExpandedCodeBox" class="qr-expanded-box"></div>
+                <div class="qr-expanded-pill" id="qrExpandedTicketPill">Ticket #104 • Mesa 4</div>
+                <div class="qr-expanded-pin-badge" id="qrExpandedPinBadge">
+                    <span>PIN SECRETO:</span>
+                    <strong id="qrExpandedPinValue">8492</strong>
+                </div>
+                <p class="qr-expanded-hint">Brillo óptimo para lectura con escáner de cocina</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION FLOTANTE TIPO SWEETALERT / IOS CAPSULE -->
     <div id="toastMsg" class="toast-msg" role="status" aria-live="polite">
-        <span id="toastIcon" class="toast-icon">🟢</span>
+        <span id="toastIcon" class="toast-icon"></span>
         <div class="toast-content">
             <span id="toastText" class="toast-text">Notificación del sistema</span>
         </div>
     </div>
 
     <!-- SCRIPTS -->
+    <script src="/js/qrcode.min.js"></script>
     <script src="/js/idb.js"></script>
     <script src="/js/app.js"></script>
 </body>

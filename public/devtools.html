@@ -2,36 +2,42 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Google Chrome DevTools | FastOrder Storage Inspection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome DevTools • Application & Storage</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background: #202124; color: #E8EAED; height: 100vh; display: flex; flex-direction: column; font-size: 12px; }
-        .devtools-header { background: #292A2D; border-bottom: 1px solid #3C4043; display: flex; align-items: center; padding: 6px 12px; gap: 14px; }
-        .tab-item { color: #9AA0A6; font-size: 12px; padding: 4px 8px; border-radius: 4px; }
-        .tab-item.active { color: #8AB4F8; background: #35363A; font-weight: 600; border-bottom: 2px solid #8AB4F8; }
+        body { background: #202124; color: #E8EAED; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .devtools-header { background: #292A2D; border-bottom: 1px solid #3C4043; height: 34px; display: flex; align-items: center; padding: 0 10px; gap: 14px; font-size: 12px; }
+        .tab-item { color: #9AA0A6; cursor: pointer; padding: 6px 4px; }
+        .tab-item.active { color: #8AB4F8; border-bottom: 2px solid #8AB4F8; font-weight: bold; }
+        
         .main-pane { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 220px; background: #242528; border-right: 1px solid #3C4043; padding: 10px 0; overflow-y: auto; }
-        .tree-header { font-size: 11px; font-weight: 700; color: #9AA0A6; text-transform: uppercase; padding: 6px 14px; letter-spacing: 0.5px; }
-        .tree-item { padding: 4px 14px; display: flex; align-items: center; gap: 8px; color: #E8EAED; cursor: pointer; }
-        .tree-item.selected { background: #35363A; color: #8AB4F8; font-weight: 600; }
-        .tree-item.sub { padding-left: 28px; }
-        .content-pane { flex: 1; display: flex; flex-direction: column; background: #202124; }
-        .table-toolbar { background: #292A2D; border-bottom: 1px solid #3C4043; padding: 6px 14px; display: flex; align-items: center; justify-content: space-between; }
-        .table-title { font-weight: 700; color: #8AB4F8; font-size: 12px; }
-        .badge { background: #137333; color: #CEEAD6; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; }
-        .table-wrap { flex: 1; overflow: auto; padding: 12px 14px; }
-        table { width: 100%; border-collapse: collapse; font-family: 'Consolas', monospace; font-size: 11px; }
-        th { background: #292A2D; color: #9AA0A6; text-align: left; padding: 6px 10px; border: 1px solid #3C4043; font-weight: 600; }
-        td { padding: 6px 10px; border: 1px solid #3C4043; color: #E8EAED; }
+        .sidebar { width: 220px; background: #202124; border-right: 1px solid #3C4043; padding: 8px 0; font-size: 12px; }
+        .tree-header { font-size: 11px; font-weight: bold; color: #9AA0A6; padding: 6px 14px 2px; text-transform: uppercase; }
+        .tree-item { padding: 5px 14px; color: #BDC1C6; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .tree-item.selected { background: #3C4043; color: #FFFFFF; font-weight: 500; }
+        .tree-item.sub { padding-left: 28px; font-size: 11px; }
+        
+        .content-pane { flex: 1; display: flex; flex-direction: column; background: #202124; overflow-y: auto; }
+        .table-toolbar { background: #292A2D; padding: 8px 14px; border-bottom: 1px solid #3C4043; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .table-title { font-weight: bold; color: #8AB4F8; }
+        .badge { background: #137333; color: #CEEAD6; font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 4px; }
+        
+        .table-wrap { padding: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: monospace; }
+        th { background: #292A2D; color: #9AA0A6; text-align: left; padding: 8px; border: 1px solid #3C4043; }
+        td { padding: 8px; border: 1px solid #3C4043; color: #E8EAED; }
         tr:nth-child(even) { background: #242528; }
         .status-sync { color: #FDD663; font-weight: bold; }
-        .sw-box { background: #292A2D; border: 1px solid #3C4043; border-radius: 6px; padding: 12px; margin-top: 14px; }
-        .sw-title { font-weight: 700; color: #81C995; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        
+        .sw-box { margin-top: 20px; background: #292A2D; border: 1px solid #3C4043; border-radius: 6px; padding: 14px; }
+        .sw-title { font-size: 12px; font-weight: bold; color: #81C995; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
     <div class="devtools-header">
-        <span style="color:#8AB4F8; font-weight:bold;">🛠️ DevTools</span>
+        <span style="color:#8AB4F8; font-weight:bold;">DevTools</span>
         <span class="tab-item">Elements</span>
         <span class="tab-item">Console</span>
         <span class="tab-item">Sources</span>
@@ -43,23 +49,23 @@
     <div class="main-pane">
         <div class="sidebar">
             <div class="tree-header">Application</div>
-            <div class="tree-item">⚙️ Manifest</div>
-            <div class="tree-item selected">⚡ Service Workers (sw.js)</div>
+            <div class="tree-item">Manifest</div>
+            <div class="tree-item selected">Service Workers (sw.js)</div>
             <div class="tree-header" style="margin-top:10px;">Storage</div>
-            <div class="tree-item">🗄️ Local Storage</div>
-            <div class="tree-item selected">📦 IndexedDB</div>
-            <div class="tree-item sub selected">📂 FastOrderDB</div>
-            <div class="tree-item sub">📄 pending_orders</div>
-            <div class="tree-item sub">📄 catalog_cache</div>
+            <div class="tree-item">Local Storage</div>
+            <div class="tree-item selected">IndexedDB</div>
+            <div class="tree-item sub selected">FastOrderDB</div>
+            <div class="tree-item sub">pending_orders</div>
+            <div class="tree-item sub">catalog_cache</div>
             <div class="tree-header" style="margin-top:10px;">Cache</div>
-            <div class="tree-item">💾 Cache Storage</div>
-            <div class="tree-item sub">📁 fastorder-appshell-v2</div>
+            <div class="tree-item">Cache Storage</div>
+            <div class="tree-item sub">fastorder-appshell-v2</div>
         </div>
 
         <div class="content-pane">
             <div class="table-toolbar">
                 <span class="table-title">IndexedDB > FastOrderDB > pending_orders (Object Store)</span>
-                <span class="badge">● OFFLINE PERSISTENCE ACTIVE</span>
+                <span class="badge">OFFLINE PERSISTENCE ACTIVE</span>
             </div>
 
             <div class="table-wrap">
@@ -99,7 +105,7 @@
 
                 <div class="sw-box">
                     <div class="sw-title">
-                        <span>🟢</span>
+                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#34A853;"></span>
                         <span>Service Worker: /sw.js</span>
                     </div>
                     <p style="color:#9AA0A6; font-size:11px; margin-bottom:6px;">Status: <strong>#42 activated and is running</strong> | Scope: http://localhost:3000/</p>

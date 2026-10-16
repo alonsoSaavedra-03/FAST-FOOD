@@ -2,61 +2,241 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#F8FAFC">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>FastOrder S.A. | Kitchen Display System (KDS)</title>
     <link rel="stylesheet" href="/css/kds.css">
-    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/icons/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 </head>
 <body>
 
-    <!-- KDS TOP STATUS HEADER -->
+    <!-- NOTIFICACIÓN DYNAMIC ISLAND TIPO APPLE IOS -->
+    <div id="kdsDynamicIsland" class="kds-dynamic-island" role="alert" aria-live="assertive">
+        <div class="island-icon-wrap" id="islandIconWrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+        </div>
+        <div class="island-content">
+            <span class="island-title" id="islandTitle">FastOrder KDS</span>
+            <span class="island-sub" id="islandSub">Estación en línea</span>
+        </div>
+    </div>
+
+    <!-- KDS TOP STATUS BAR / HEADER ESTILO APPLE GLASS -->
     <header class="kds-header">
         <div class="kds-brand">
-            <span style="font-size:1.8rem;">🍳</span>
-            <div>
-                <h1>KDS COCINA EN TIEMPO REAL</h1>
-                <span class="kds-badge">ESTACIÓN PRINCIPAL • FASTORDER S.A.</span>
+            <img src="/icons/logo.png" alt="FastOrder Logo" class="kds-logo-img">
+            <div class="kds-title-wrap">
+                <h1>KDS Cocina</h1>
+                <span class="kds-badge">ESTACIÓN PRINCIPAL</span>
             </div>
         </div>
 
         <div class="kds-metrics">
             <div class="metric-pill">
-                <span>Comandas Activas:</span>
+                <span class="metric-label">Comandas:</span>
                 <span class="metric-num" id="activeTicketsCount">0</span>
             </div>
 
-            <div class="metric-pill">
-                <span>Reloj:</span>
-                <span id="kdsClock" style="color:#FDE047; font-family:monospace; font-size:1.05rem;">00:00:00</span>
+            <div class="metric-pill metric-clock-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 14"></polyline>
+                </svg>
+                <span id="kdsClock">00:00:00</span>
             </div>
 
             <div class="ws-indicator ws-online" id="kdsWsBadge">
-                <span id="kdsWsDot">●</span>
+                <span class="ws-dot" id="kdsWsDot"></span>
                 <span id="kdsWsText">WSS Online</span>
             </div>
         </div>
 
         <div class="kds-controls">
-            <button class="btn-ctrl" id="btnToggleSound" title="Activar/Desactivar alertas sonoras">
-                <span id="soundIcon">🔊</span> Sonido Activado
+            <button class="btn-ctrl btn-ctrl-qr" id="btnOpenTopScanner" onclick="openKdsScanner()" title="Escanear Código QR de Cliente para entrega">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span class="btn-text">Escanear QR</span>
             </button>
-            <a href="/portal.html" class="btn-ctrl" style="text-decoration:none;" title="Volver al Portal">🏛️ Portal</a>
+            <button class="btn-ctrl" id="btnToggleSound" title="Activar/Desactivar alertas sonoras">
+                <span id="soundIcon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                </span>
+                <span class="btn-text">Audio</span>
+            </button>
+            <button class="btn-ctrl" id="btnClearBoard" onclick="if(confirm('¿Deseas limpiar todas las comandas de cocina?')) clearAllKdsOrders();" title="Limpiar y vaciar tablero de comandas">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span class="btn-text">Limpiar</span>
+            </button>
+            <a href="/portal.html" class="btn-ctrl btn-portal" title="Volver al Portal">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span class="btn-text">Portal</span>
+            </a>
         </div>
     </header>
 
-    <!-- MAIN TICKETS BOARD -->
-    <main class="kds-main">
+    <!-- BARRA SEGMENTADA ESTILO IOS (CONTROL DE FILTRO POR ESTADO) -->
+    <nav class="kds-segmented-bar" aria-label="Filtro de comandas">
+        <div class="ios-segmented-control" role="tablist">
+            <button type="button" class="seg-item active" data-filter="ALL" onclick="setKdsFilter('ALL')" role="tab" aria-selected="true">
+                <span class="seg-label">Todas</span>
+                <span class="seg-count" id="segCountAll">0</span>
+            </button>
+            <button type="button" class="seg-item" data-filter="RECIBIDO_EN_SERVIDOR" onclick="setKdsFilter('RECIBIDO_EN_SERVIDOR')" role="tab" aria-selected="false">
+                <span class="seg-label">Nuevas</span>
+                <span class="seg-count" id="segCountNew">0</span>
+            </button>
+            <button type="button" class="seg-item" data-filter="EN_PREPARACION" onclick="setKdsFilter('EN_PREPARACION')" role="tab" aria-selected="false">
+                <span class="seg-label">En Plancha</span>
+                <span class="seg-count" id="segCountPrep">0</span>
+            </button>
+            <button type="button" class="seg-item" data-filter="LISTO_PARA_ENTREGA" onclick="setKdsFilter('LISTO_PARA_ENTREGA')" role="tab" aria-selected="false">
+                <span class="seg-label">Listas</span>
+                <span class="seg-count" id="segCountReady">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN TICKETS BOARD (RESPONSIVO MÓVIL Y PC) -->
+    <main class="kds-main" id="kdsMainArea">
         <div class="kds-grid" id="kdsTicketsGrid">
             <!-- Empty state por defecto mientras no hay pedidos -->
             <div class="kds-empty" id="kdsEmptyState">
-                <div class="kds-empty-icon">🍔</div>
+                <div class="kds-empty-icon">
+                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                        <line x1="6" y1="1" x2="6" y2="4"></line>
+                        <line x1="10" y1="1" x2="10" y2="4"></line>
+                        <line x1="14" y1="1" x2="14" y2="4"></line>
+                    </svg>
+                </div>
                 <h2>Cocina al día y sin órdenes pendientes</h2>
                 <p>Las nuevas comandas realizadas desde la PWA del cliente o sincronizadas offline aparecerán aquí al instante en tiempo real.</p>
             </div>
         </div>
     </main>
 
+    <!-- BOTÓN FLOTANTE MÓVIL ESTILO IOS (ACCESO RÁPIDO A ESCÁNER / PIN) -->
+    <button class="kds-mobile-fab-qr" id="kdsMobileFab" onclick="openKdsScanner()" aria-label="Escanear QR o validar PIN">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span>Escanear QR / PIN</span>
+    </button>
+
+    <!-- MODAL ESCÁNER QR DE ENTREGA & VALIDACIÓN KDS (ESTILO BOTTOM SHEET EN MÓVIL) -->
+    <div id="kdsScannerOverlay" class="kds-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="kdsScannerTitle">
+        <div class="kds-scanner-card">
+            <!-- Grab Handle para interacción táctil estilo iOS -->
+            <div class="sheet-handle"></div>
+
+            <div class="kds-scanner-header">
+                <div class="scanner-header-left">
+                    <div class="kds-qr-icon-wrap">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="kdsScannerTitle">Validar Entrega con QR</h3>
+                        <span id="kdsScannerTargetHint">Escanea el código QR o ingresa el PIN secreto de 4 dígitos</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close-kds" onclick="closeKdsScanner()" aria-label="Cerrar escáner">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+
+            <div class="kds-scanner-body">
+                <!-- Visor Óptico / Cámara de Escaneo Adaptativo -->
+                <div class="scanner-viewport-box">
+                    <video id="kdsScannerVideo" autoplay playsinline muted></video>
+                    <canvas id="kdsScannerCanvas" style="display: none;"></canvas>
+                    
+                    <div class="scanner-reticle">
+                        <div class="reticle-corner tl"></div>
+                        <div class="reticle-corner tr"></div>
+                        <div class="reticle-corner bl"></div>
+                        <div class="reticle-corner br"></div>
+                        <div class="scanner-laser"></div>
+                    </div>
+
+                    <div id="kdsCameraStatus" class="camera-status-pill">
+                        <span class="status-pulse-dot"></span>
+                        <span id="kdsCameraStatusText">Cámara activa escaneando...</span>
+                    </div>
+                </div>
+
+                <!-- Panel de Validación Rápida & Lector Manual -->
+                <div class="scanner-controls-panel">
+                    <div class="scanner-section-title">
+                        <span>COMANDAS LISTAS PARA ENTREGA</span>
+                        <span class="scanner-hint-badge">Toca para validar</span>
+                    </div>
+                    
+                    <div id="kdsReadyTicketsPills" class="ready-tickets-pills">
+                        <!-- Chips de comandas listas inyectados aquí -->
+                    </div>
+
+                    <!-- Input para lector físico USB o entrada directa de PIN -->
+                    <form onsubmit="event.preventDefault(); verifyManualQrInput();" class="manual-qr-form">
+                        <div class="manual-input-wrap">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="manual-input-icon">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <input type="text" id="kdsManualQrInput" placeholder="Escáner USB, ticket o PIN (Ej. 8492)..." autocomplete="off" inputmode="numeric">
+                            <button type="submit" class="btn-verify-manual">Validar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Banner de Resultado de Validación -->
+                <div id="kdsVerificationResult" class="verification-result-box" style="display: none;">
+                    <div class="result-icon-wrap" id="kdsResultIcon">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="result-details">
+                        <h4 id="kdsResultTitle">Ticket Verificado con Éxito</h4>
+                        <p id="kdsResultDesc">Entrega autorizada</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
+    <script src="/js/qrcode.min.js"></script>
+    <script src="/js/jsQR.js"></script>
     <script src="/js/kds.js"></script>
 </body>
 </html>

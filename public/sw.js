@@ -1,8 +1,8 @@
 // FastOrder S.A. - Service Worker
 // Version: 1.0.0 (Offline-First Architecture)
 
-const CACHE_STATIC_NAME = 'fastorder-appshell-v2';
-const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v2';
+const CACHE_STATIC_NAME = 'fastorder-appshell-v18';
+const CACHE_DYNAMIC_NAME = 'fastorder-runtime-v18';
 
 const STATIC_ASSETS = [
     '/',
@@ -11,13 +11,28 @@ const STATIC_ASSETS = [
     '/portal.html',
     '/css/style.css',
     '/css/kds.css',
+    '/js/qrcode.min.js',
+    '/js/jsQR.js',
     '/js/app.js',
     '/js/kds.js',
     '/js/idb.js',
     '/manifest.json',
-    '/icons/icon.svg',
+    '/icons/logo.png',
+    '/icons/favicon.png',
+    '/icons/apple-touch-icon.png',
+    '/images/logo.jpg',
     '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    '/icons/icon-512.png',
+    '/images/products/combo_doble.jpg',
+    '/images/products/monster_bacon.jpg',
+    '/images/products/cheese_burger.jpg',
+    '/images/products/chicken_burger.jpg',
+    '/images/products/papas_rusticas.jpg',
+    '/images/products/aros_cebolla.jpg',
+    '/images/products/nuggets.jpg',
+    '/images/products/inka_cola.jpg',
+    '/images/products/chicha_morada.jpg',
+    '/images/products/helado_oreo.jpg'
 ];
 
 // 1. INSTALL
@@ -133,7 +148,7 @@ self.addEventListener('push', (event) => {
         vibrate: [200, 100, 200],
         data: data.data || { url: '/' },
         actions: [
-            { action: 'ver_pedido', title: 'Ver Pedido 🍔' },
+            { action: 'ver_pedido', title: 'Ver Pedido' },
             { action: 'cerrar', title: 'Entendido' }
         ]
     };

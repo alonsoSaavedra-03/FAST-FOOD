@@ -4,101 +4,803 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FastOrder S.A. | Portal del Ecosistema PWA & KDS</title>
-    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/icons/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <meta name="theme-color" content="#F4F6F9">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <style>
         :root {
-            --primary: #1E3A8A;
-            --accent: #F59E0B;
-            --bg: #0F172A;
-            --card-bg: #1E293B;
-            --border: #334155;
-            --text: #F8FAFC;
-            --text-dim: #94A3B8;
+            --portal-bg: #F4F6F9;
+            --portal-surface: #FFFFFF;
+            --portal-border: rgba(0, 0, 0, 0.07);
+            --portal-border-hover: rgba(0, 0, 0, 0.15);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --text-tertiary: #94A3B8;
+            --brand-orange: #FF441F;
+            --brand-blue: #2563EB;
+            --brand-emerald: #059669;
+            --brand-amber: #D97706;
+            --shadow-subtle: 0 4px 18px rgba(15, 23, 42, 0.04);
+            --shadow-hover: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --radius-card: 20px;
+            --radius-pill: 9999px;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background: var(--bg); color: var(--text); padding: 40px 20px; min-height: 100vh; }
-        .container { max-width: 960px; margin: 0 auto; }
-        
-        .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-size: 2.2rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.5px; }
-        .header p { color: var(--text-dim); font-size: 1.05rem; margin-top: 8px; }
-        .tag { background: rgba(245, 158, 11, 0.2); color: #FCD34D; font-weight: 800; font-size: 0.8rem; padding: 4px 14px; border-radius: 20px; display: inline-block; margin-top: 10px; border: 1px solid rgba(245, 158, 11, 0.4); }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 40px; }
-        .card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .card:hover { transform: translateY(-5px); border-color: var(--accent); }
-        .card-icon { font-size: 3rem; margin-bottom: 14px; }
-        .card h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 8px; color: #FFFFFF; }
-        .card p { font-size: 0.9rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 20px; flex: 1; }
-        
-        .btn-launch { display: block; text-align: center; background: var(--accent); color: #0F172A; text-decoration: none; font-weight: 800; font-size: 0.95rem; padding: 13px 20px; border-radius: 12px; transition: background 0.2s; }
-        .btn-launch:hover { background: #D97706; }
-        .btn-launch.client { background: #3B82F6; color: white; }
-        .btn-launch.client:hover { background: #2563EB; }
-        .btn-launch.kitchen { background: #10B981; color: white; }
-        .btn-launch.kitchen:hover { background: #059669; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
 
-        .guide-box { background: #1E293B; border: 1px solid var(--border); border-radius: 16px; padding: 26px; }
-        .guide-box h3 { font-size: 1.2rem; font-weight: 800; color: #38BDF8; margin-bottom: 14px; }
-        .step { margin-bottom: 12px; font-size: 0.92rem; color: #CBD5E1; line-height: 1.5; }
-        .step strong { color: #FFFFFF; }
-        .code-pill { background: #0F172A; padding: 2px 8px; border-radius: 6px; font-family: monospace; color: #FDE047; font-size: 0.85rem; border: 1px solid #334155; }
+        body {
+            background-color: var(--portal-bg);
+            color: var(--text-primary);
+            padding: 40px 20px 80px;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        /* BARRA SUPERIOR SLIM */
+        .portal-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 34px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--portal-border);
+        }
+
+        .brand-badge-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-badge-wrap img {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 3px 10px rgba(255, 68, 31, 0.2);
+        }
+
+        .brand-text-block strong {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: block;
+            line-height: 1.2;
+        }
+
+        .brand-text-block span {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .top-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-nav-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--portal-surface);
+            border: 1px solid var(--portal-border);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 7px 14px;
+            border-radius: var(--radius-pill);
+            transition: all 0.2s ease;
+        }
+
+        .btn-nav-pill:hover {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+
+        /* HEADER HERO */
+        .portal-hero {
+            text-align: center;
+            margin-bottom: 44px;
+        }
+
+        .hero-logo-img {
+            width: 72px;
+            height: 72px;
+            border-radius: 20px;
+            object-fit: cover;
+            box-shadow: 0 8px 24px rgba(255, 68, 31, 0.22);
+            margin-bottom: 16px;
+        }
+
+        .portal-hero h1 {
+            font-size: 2.1rem;
+            font-weight: 900;
+            letter-spacing: -0.6px;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .portal-hero p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 620px;
+            margin: 0 auto 16px;
+            font-weight: 400;
+        }
+
+        .senati-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #EFF6FF;
+            color: #1D4ED8;
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 6px 16px;
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            letter-spacing: 0.3px;
+        }
+
+        /* GRID PRINCIPAL DE ACCESOS */
+        .launch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 20px;
+            margin-bottom: 54px;
+        }
+
+        .launch-card {
+            background: var(--portal-surface);
+            border: 1px solid var(--portal-border);
+            border-radius: var(--radius-card);
+            padding: 28px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+            position: relative;
+        }
+
+        .launch-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--portal-border-hover);
+        }
+
+        .launch-icon-wrap {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+
+        .launch-icon-wrap.client {
+            background: #EFF6FF;
+            color: var(--brand-blue);
+        }
+
+        .launch-icon-wrap.kitchen {
+            background: #ECFDF5;
+            color: var(--brand-emerald);
+        }
+
+        .launch-icon-wrap.guide {
+            background: #FFFBEB;
+            color: var(--brand-amber);
+        }
+
+        .launch-card h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+            margin-bottom: 8px;
+        }
+
+        .launch-card p {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .card-specs-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 22px;
+        }
+
+        .spec-tag {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 6px;
+            background: #F1F5F9;
+            color: var(--text-secondary);
+        }
+
+        .btn-launch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 12px 18px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-launch.client {
+            background: var(--brand-blue);
+            color: #FFFFFF;
+        }
+
+        .btn-launch.client:hover {
+            background: #1D4ED8;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-launch.kitchen {
+            background: var(--brand-emerald);
+            color: #FFFFFF;
+        }
+
+        .btn-launch.kitchen:hover {
+            background: #047857;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-launch.guide {
+            background: var(--brand-orange);
+            color: #FFFFFF;
+        }
+
+        .btn-launch.guide:hover {
+            background: #E03513;
+            box-shadow: 0 4px 14px rgba(255, 68, 31, 0.3);
+        }
+
+        /* SECCIÓN GUÍA INTERACTIVA (ESTILO TIMELINE APPLE) */
+        .guide-section {
+            background: var(--portal-surface);
+            border: 1px solid var(--portal-border);
+            border-radius: var(--radius-card);
+            padding: 36px 32px;
+            box-shadow: var(--shadow-subtle);
+            margin-bottom: 34px;
+            scroll-margin-top: 30px;
+        }
+
+        .guide-header-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--portal-border);
+        }
+
+        .guide-main-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #FFF7ED;
+            color: var(--brand-orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .guide-title-box h3 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.4px;
+            margin-bottom: 4px;
+        }
+
+        .guide-title-box p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* LISTADO DE PASOS ESTILO APPLE CARDS */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .step-card {
+            background: #F8FAFC;
+            border: 1px solid var(--portal-border);
+            border-radius: 16px;
+            padding: 20px 22px;
+            display: flex;
+            gap: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .step-card:hover {
+            background: #FFFFFF;
+            border-color: var(--portal-border-hover);
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+        }
+
+        .step-number-pill {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--portal-surface);
+            border: 2px solid var(--brand-blue);
+            color: var(--brand-blue);
+            font-weight: 800;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+        }
+
+        .step-card.success .step-number-pill {
+            border-color: var(--brand-emerald);
+            color: var(--brand-emerald);
+        }
+
+        .step-card.warning .step-number-pill {
+            border-color: var(--brand-amber);
+            color: var(--brand-amber);
+        }
+
+        .step-card.brand .step-number-pill {
+            border-color: var(--brand-orange);
+            color: var(--brand-orange);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .step-title-line h4 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .step-badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: var(--radius-pill);
+            letter-spacing: 0.3px;
+        }
+
+        .badge-blue { background: #EFF6FF; color: #1D4ED8; }
+        .badge-amber { background: #FFFBEB; color: #B45309; }
+        .badge-green { background: #ECFDF5; color: #047857; }
+        .badge-purple { background: #F5F3FF; color: #6D28D9; }
+        .badge-orange { background: #FFF7ED; color: #C2410C; }
+
+        .step-desc {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            margin-bottom: 10px;
+        }
+
+        .step-tags-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        .guide-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #E2E8F0;
+            color: #1E293B;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-family: monospace;
+        }
+
+        .guide-result-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.78rem;
+            color: var(--brand-emerald);
+            font-weight: 700;
+            background: #ECFDF5;
+            padding: 3px 10px;
+            border-radius: var(--radius-pill);
+        }
+
+        /* CARD DE MANTENIMIENTO & RESET RÁPIDO */
+        .portal-reset-card {
+            background: var(--portal-surface);
+            border: 1px dashed var(--portal-border);
+            border-radius: 16px;
+            padding: 22px 26px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .reset-card-info h5 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .reset-card-info p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-reset-board {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #FEF2F2;
+            color: #DC2626;
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 9px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-reset-board:hover {
+            background: #FEE2E2;
+            border-color: #DC2626;
+        }
+
+        /* FOOTER COPYRIGHT */
+        .portal-footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.82rem;
+            color: var(--text-tertiary);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 20px 14px 60px; }
+            .portal-top-bar { flex-direction: column; align-items: flex-start; gap: 14px; }
+            .top-nav-links { width: 100%; justify-content: space-between; }
+            .portal-hero h1 { font-size: 1.7rem; }
+            .guide-section { padding: 24px 18px; }
+            .step-card { flex-direction: column; gap: 12px; }
+            .portal-reset-card { flex-direction: column; align-items: flex-start; }
+            .btn-reset-board { width: 100%; justify-content: center; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <span style="font-size:3.5rem;">🍔</span>
+        <!-- BARRA SUPERIOR -->
+        <header class="portal-top-bar">
+            <div class="brand-badge-wrap">
+                <img src="/icons/logo.png" alt="FastOrder Logo">
+                <div class="brand-text-block">
+                    <strong>FastOrder S.A.</strong>
+                    <span>Ecosistema de Software PWA & KDS</span>
+                </div>
+            </div>
+            <nav class="top-nav-links">
+                <a href="/" class="btn-nav-pill" target="_blank" title="Abrir App de Pedidos">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
+                    <span>App Cliente</span>
+                </a>
+                <a href="/cocina.html" class="btn-nav-pill" target="_blank" title="Abrir Monitor de Cocina">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Cocina KDS</span>
+                </a>
+                <a href="#guia" class="btn-nav-pill" style="color:var(--brand-orange); border-color:rgba(255,68,31,0.25);" title="Ver pasos de prueba">
+                    <span>Guía</span>
+                </a>
+            </nav>
+        </header>
+
+        <!-- HERO PRINCIPAL -->
+        <div class="portal-hero">
+            <img src="/icons/logo.png" alt="FastOrder" class="hero-logo-img">
             <h1>FASTORDER S.A.</h1>
-            <p>Ecosistema de Software PWA Offline-First, KDS en Tiempo Real y API REST</p>
-            <span class="tag">PROYECTO TÉCNICO SENATI • INGENIERÍA DE SOFTWARE</span>
+            <p>Ecosistema de Software PWA Offline-First, KDS en Tiempo Real con WebSockets y Despacho Verificado por QR</p>
+            <span class="senati-pill">PROYECTO TÉCNICO SENATI • INGENIERÍA DE SOFTWARE</span>
         </div>
 
-        <div class="grid">
-            <!-- VISTA CLIENTE -->
-            <div class="card">
-                <div class="card-icon">📱</div>
+        <!-- TARJETAS DE LANZAMIENTO -->
+        <div class="launch-grid">
+            <!-- VISTA CLIENTE PWA -->
+            <div class="launch-card">
+                <div class="launch-icon-wrap client">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
+                </div>
                 <h2>Cliente Móvil (PWA)</h2>
-                <p>Aplicación progresiva Mobile-First optimizada para comensales. Incluye menú categorizado, personalización de platillos, carrito persistente en IndexedDB, botón Thumb-Zone y checkout en modo 100% offline.</p>
-                <a href="/" class="btn-launch client" target="_blank">Abrir App Cliente PWA ➔</a>
+                <p>Aplicación progresiva Mobile-First optimizada para comensales. Incluye menú categorizado, agregados personalizados, canasta persistente en IndexedDB, botón Thumb-Zone y checkout en modo 100% offline.</p>
+                <div class="card-specs-tags">
+                    <span class="spec-tag">Offline-First</span>
+                    <span class="spec-tag">IndexedDB</span>
+                    <span class="spec-tag">QR de Entrega</span>
+                    <span class="spec-tag">v17 Cache</span>
+                </div>
+                <a href="/" class="btn-launch client" target="_blank">
+                    <span>Abrir App Cliente PWA</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
             </div>
 
             <!-- VISTA COCINA KDS -->
-            <div class="card">
-                <div class="card-icon">🍳</div>
+            <div class="launch-card">
+                <div class="launch-icon-wrap kitchen">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
                 <h2>Pantalla KDS Cocina</h2>
-                <p>Monitor de cocina en tiempo real conectado vía WebSockets bidireccionales. Despliega comandas al instante con timers de alerta por color (verde, amarillo, rojo), sonido de campana y cambio de estados.</p>
-                <a href="/cocina.html" class="btn-launch kitchen" target="_blank">Abrir Monitor KDS Cocina ➔</a>
+                <p>Monitor de cocina en tiempo real conectado vía WebSockets bidireccionales. Despliega comandas al instante con filtros segmentados, timers dinámicos con código de color, síntesis de audio y escáner QR con jsQR.</p>
+                <div class="card-specs-tags">
+                    <span class="spec-tag">WebSockets</span>
+                    <span class="spec-tag">Filtros iOS</span>
+                    <span class="spec-tag">Escáner jsQR</span>
+                    <span class="spec-tag">Dynamic Island</span>
+                </div>
+                <a href="/cocina.html" class="btn-launch kitchen" target="_blank">
+                    <span>Abrir Monitor KDS Cocina</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
             </div>
 
-            <!-- VISTA DUAL SPLIT -->
-            <div class="card">
-                <div class="card-icon">⚡</div>
+            <!-- VISTA GUIA DE PRUEBAS -->
+            <div class="launch-card">
+                <div class="launch-icon-wrap guide">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
                 <h2>Simulación y Pruebas</h2>
-                <p>Permite probar simultáneamente ambas vistas: realiza una orden en el cliente (online u offline) y observa cómo impacta de inmediato en la cocina mediante eventos WebSocket y Background Sync.</p>
-                <a href="#guia" class="btn-launch">Ver Guía de Pruebas ➔</a>
+                <p>Permite evaluar simultáneamente ambas vistas: realiza una orden en el cliente (en línea o sin conexión) y observa cómo impacta de inmediato en la cocina mediante eventos WebSocket y Background Sync.</p>
+                <div class="card-specs-tags">
+                    <span class="spec-tag">Background Sync</span>
+                    <span class="spec-tag">Simulación Offline</span>
+                    <span class="spec-tag">Validación PIN</span>
+                </div>
+                <a href="#guia" class="btn-launch guide">
+                    <span>Ver Pasos de la Guía</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                </a>
             </div>
         </div>
 
-        <!-- GUIA DE PRUEBAS -->
-        <div class="guide-box" id="guia">
-            <h3>🧪 Guía Rápida para Demostración y Evaluación</h3>
-            <div class="step">
-                <strong>Paso 1: Abrir ambas ventanas en paralelo:</strong> Abre la <a href="/" target="_blank" style="color:#38BDF8;">Vista Cliente</a> en una mitad de tu pantalla y el <a href="/cocina.html" target="_blank" style="color:#34D399;">Monitor KDS</a> en la otra mitad.
+        <!-- GUÍA PASO A PASO PARA EVALUACIÓN -->
+        <section class="guide-section" id="guia">
+            <div class="guide-header-row">
+                <div class="guide-main-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <div class="guide-title-box">
+                    <h3>Guía Rápida para Demostración y Evaluación</h3>
+                    <p>Secuencia estructurada para comprobar la sincronización en vivo, la resiliencia offline y el despacho verificado por código QR.</p>
+                </div>
             </div>
-            <div class="step">
-                <strong>Paso 2: Prueba de Pedido en Tiempo Real:</strong> Agrega platillos al carrito en la PWA y presiona <span class="code-pill">Confirmar Pedido</span>. Verás cómo aparece inmediatamente en el monitor KDS con alerta sonora y cronómetro en vivo.
+
+            <div class="steps-container">
+                <!-- PASO 1 -->
+                <div class="step-card">
+                    <div class="step-number-pill">1</div>
+                    <div class="step-content">
+                        <div class="step-title-line">
+                            <h4>Abrir las dos pantallas en paralelo</h4>
+                            <span class="step-badge badge-blue">CONFIGURACIÓN INICIAL</span>
+                        </div>
+                        <p class="step-desc">
+                            Abre la <a href="/" target="_blank" style="color:var(--brand-blue); font-weight:700;">App del Cliente</a> en una mitad de tu pantalla (o en tu smartphone) y el <a href="/cocina.html" target="_blank" style="color:var(--brand-emerald); font-weight:700;">Monitor KDS</a> en la otra mitad de la pantalla.
+                        </p>
+                        <div class="step-tags-row">
+                            <span class="guide-result-pill">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Ambas pantallas sincronizadas mediante WebSocket
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 2 -->
+                <div class="step-card">
+                    <div class="step-number-pill">2</div>
+                    <div class="step-content">
+                        <div class="step-title-line">
+                            <h4>Prueba de Pedido en Tiempo Real (Online)</h4>
+                            <span class="step-badge badge-green">WEBSOCKETS WSS</span>
+                        </div>
+                        <p class="step-desc">
+                            En la PWA del cliente, ingresa tu nombre y mesa, agrega platillos a la canasta y presiona <span class="guide-tag">Confirmar Pedido (En línea)</span>. Observarás cómo la comanda aparece al instante en el monitor de cocina con alerta sonora doble (Web Audio API) y cronómetro en vivo sin recargar la página.
+                        </p>
+                        <div class="step-tags-row">
+                            <span class="guide-result-pill">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Comanda recibida en menos de 50 milisegundos
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 3 -->
+                <div class="step-card warning">
+                    <div class="step-number-pill">3</div>
+                    <div class="step-content">
+                        <div class="step-title-line">
+                            <h4>Prueba de Resiliencia Offline (Sin Internet)</h4>
+                            <span class="step-badge badge-amber">OFFLINE-FIRST</span>
+                        </div>
+                        <p class="step-desc">
+                            En la PWA, pulsa en la píldora de estado <span class="guide-tag">En línea</span> o ve a la pestaña <strong>Mi Cuenta</strong> y toca <span class="guide-tag">Simular Offline</span> (o activa el Modo Avión en tu celular). El aviso cambiará a modo sin conexión. Agrega productos y presiona <span class="guide-tag">Guardar Pedido (Sin conexión)</span>; la orden se guardará íntegra en IndexedDB localmente sin interrumpir la experiencia.
+                        </p>
+                        <div class="step-tags-row">
+                            <span class="guide-result-pill" style="color:var(--brand-amber); background:#FFFBEB;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Pedido persistido en IndexedDB con Ticket preliminar
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 4 -->
+                <div class="step-card">
+                    <div class="step-number-pill">4</div>
+                    <div class="step-content">
+                        <div class="step-title-line">
+                            <h4>Sincronización Automática (Background Sync)</h4>
+                            <span class="step-badge badge-purple">BACKGROUND SYNC</span>
+                        </div>
+                        <p class="step-desc">
+                            Vuelve a tocar el botón para restaurar la conexión a <span class="guide-tag">En línea</span>. El Service Worker despachará automáticamente la comanda encolada hacia el servidor de forma idempotente, apareciendo de inmediato en la cocina con el distintivo <span class="guide-tag">OFFLINE</span>.
+                        </p>
+                        <div class="step-tags-row">
+                            <span class="guide-result-pill">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Cola vaciada y sincronización confirmada
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 5 -->
+                <div class="step-card">
+                    <div class="step-number-pill">5</div>
+                    <div class="step-content">
+                        <div class="step-title-line">
+                            <h4>Avance de Estados de Preparación en Cocina</h4>
+                            <span class="step-badge badge-blue">FLUJO OPERATIVO</span>
+                        </div>
+                        <p class="step-desc">
+                            En el monitor de cocina, presiona <span class="guide-tag">Iniciar Cocción</span>. En la pantalla del comensal, el estado cambiará en tiempo real a "En Plancha / Cocción". Luego presiona <span class="guide-tag">Marcar Listo para Entrega</span>: la PWA notificará al cliente que su orden está lista y activará su <strong>Código QR de Validación</strong>.
+                        </p>
+                        <div class="step-tags-row">
+                            <span class="guide-result-pill">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Notificaciones bidireccionales en vivo y Dynamic Island activada
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 6 -->
+                <div class="step-card brand">
+                    <div class="step-number-pill">6</div>
+                    <div class="step-content">
+                        <div class="step-title-line">
+                            <h4>Validación Obligatoria por QR o PIN de Entrega</h4>
+                            <span class="step-badge badge-orange">DESPACHO SEGURO</span>
+                        </div>
+                        <p class="step-desc">
+                            Para entregar la orden, el personal en la cocina hace clic en <span class="guide-tag">Escanear QR de Entrega</span> y enfoca la cámara hacia el código QR en la pantalla del cliente (o digita el <strong>PIN secreto de 4 dígitos</strong>). El motor <em>jsQR</em> valida la comanda, reproduce el acorde triunfal, sella la pantalla del cliente con <strong>PEDIDO ENTREGADO</strong> y archiva el ticket.
+                        </p>
+                        <div class="step-tags-row">
+                            <span class="guide-result-pill" style="color:var(--brand-orange); background:#FFF7ED;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Entrega validada y sellada con éxito en ambas pantallas
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="step">
-                <strong>Paso 3: Prueba de Resiliencia Offline (Sin Internet):</strong> La PWA cuenta con un indicador de conexión interactivo que notifica tanto cuando estás <em>En línea</em> como cuando estás <em>Sin conexión</em>. Pulsa <span class="code-pill">Simular Offline</span> (o activa Modo Avión). Verás cómo el aviso cambia de color y mensaje inmediatamente. Agrega productos y presiona <span class="code-pill">Guardar Pedido (Sin conexión)</span>; la orden se registrará en IndexedDB localmente sin trabas.
+        </section>
+
+        <!-- PANEL DE RESET RÁPIDO PARA EL EVALUADOR -->
+        <div class="portal-reset-card">
+            <div class="reset-card-info">
+                <h5>¿Deseas reiniciar la prueba desde cero?</h5>
+                <p>Limpia todas las comandas de cocina en el servidor y vacía el tablero para una nueva demostración.</p>
             </div>
-            <div class="step">
-                <strong>Paso 4: Prueba de Sincronización Automática (Background Sync):</strong> Vuelve a pulsar el botón para restaurar la conexión a <span class="code-pill">Online</span>. El Service Worker despachará automáticamente la comanda encolada hacia el servidor y la orden aparecerá en la cocina con el distintivo <span class="code-pill">⚡ OFFLINE SYNC</span>.
-            </div>
-            <div class="step">
-                <strong>Paso 5: Avance de Estados en Cocina:</strong> En la cocina KDS, presiona <span class="code-pill">🔥 Iniciar Cocción</span> y luego <span class="code-pill">✓ Marcar Listo</span>. Notarás que el cliente recibe notificaciones en vivo y su barra de seguimiento se actualiza sola.
-            </div>
+            <button type="button" class="btn-reset-board" onclick="resetDemoOrders()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>Limpiar Comandas del Servidor</span>
+            </button>
         </div>
+
+        <footer class="portal-footer">
+            FastOrder S.A. • Proyecto SENATI • Arquitectura de Software Offline-First & Real-Time KDS
+        </footer>
     </div>
+
+    <script>
+        async function resetDemoOrders() {
+            if (!confirm('¿Deseas vaciar todas las comandas en el servidor para iniciar una prueba limpia?')) return;
+            try {
+                const res = await fetch('/api/v1/pedidos/limpiar', { method: 'POST' });
+                if (res.ok) {
+                    alert('Todas las órdenes han sido limpiadas con éxito. El tablero de cocina está en cero.');
+                }
+            } catch (err) {
+                alert('No se pudo conectar con el servidor.');
+            }
+        }
+    </script>
 </body>
 </html>
